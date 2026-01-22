@@ -357,6 +357,68 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
+        /* البحث المتقدم - تصميم جديد */
+        .search-advanced {
+            margin-bottom: 25px;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .filter-tag {
+            background: var(--secondary);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .filter-tag .remove-filter {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+        
+        .filter-tag .remove-filter:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .search-indicator {
+            background: rgba(25, 118, 210, 0.1);
+            border-right: 4px solid var(--secondary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        
         /* كروت الطلاب */
         .student-cards-grid {
             display: grid;
@@ -1811,7 +1873,7 @@
                 </div>
             </div>
 
-            <!-- قسم الإعارة -->
+            <!-- قسم الإعارة - مع إضافة البحث المتقدم -->
             <div class="tab-content" id="borrow">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                     <h2><i class="fas fa-hand-holding"></i> نظام الإعارة</h2>
@@ -1822,6 +1884,101 @@
                         <button class="btn-sm btn-success" onclick="showBorrowModal()">
                             <i class="fas fa-plus"></i> إعارة جديدة
                         </button>
+                    </div>
+                </div>
+                
+                <!-- البحث المتقدم في الإعارة -->
+                <div class="search-advanced">
+                    <h3 style="color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-search-plus"></i> البحث المتقدم في الإعارة
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                        <!-- بحث حسب الطالب -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-user-graduate"></i> البحث في الطالب
+                            </label>
+                            <input type="text" id="borrowSearchStudent" class="search-input" 
+                                   placeholder="اسم الطالب، رقم جامعي، قسم..." 
+                                   oninput="searchBorrow()">
+                        </div>
+                        
+                        <!-- بحث حسب الكتاب -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-book"></i> البحث في الكتاب
+                            </label>
+                            <input type="text" id="borrowSearchBook" class="search-input" 
+                                   placeholder="عنوان الكتاب، المؤلف، تصنيف..." 
+                                   oninput="searchBorrow()">
+                        </div>
+                        
+                        <!-- بحث حسب التاريخ -->
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-calendar"></i> البحث حسب التاريخ
+                            </label>
+                            <select id="borrowSearchDate" class="form-control" onchange="searchBorrow()">
+                                <option value="">جميع التواريخ</option>
+                                <option value="today">اليوم</option>
+                                <option value="week">هذا الأسبوع</option>
+                                <option value="month">هذا الشهر</option>
+                                <option value="late">متأخرة</option>
+                                <option value="active">نشطة فقط</option>
+                                <option value="returned">مُرجعة فقط</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- فلاتر البحث النشطة -->
+                    <div class="filter-tags" id="borrowFilterTags">
+                        <!-- سيتم إضافة الفلاتر النشطة هنا ديناميكياً -->
+                    </div>
+                    
+                    <!-- مؤشر البحث -->
+                    <div class="search-indicator" id="borrowSearchIndicator">
+                        <!-- سيتم إضافة مؤشر البحث هنا ديناميكياً -->
+                    </div>
+                    
+                    <!-- أزرار تحكم البحث -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+                        <button class="btn-sm btn-primary" onclick="clearBorrowSearch()">
+                            <i class="fas fa-times"></i> مسح البحث
+                        </button>
+                        <button class="btn-sm btn-info" onclick="toggleBorrowFilters()">
+                            <i class="fas fa-filter"></i> المزيد من الفلاتر
+                        </button>
+                    </div>
+                    
+                    <!-- فلاتر إضافية مخفية -->
+                    <div id="additionalFilters" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border);">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                    <i class="fas fa-chalkboard-teacher"></i> الأستاذ المشرف
+                                </label>
+                                <select id="borrowSearchProfessor" class="form-control" onchange="searchBorrow()">
+                                    <option value="">جميع الأساتذة</option>
+                                    <option value="د. صفاء">د. صفاء</option>
+                                    <option value="د. أحمد">د. أحمد</option>
+                                    <option value="د. محمد">د. محمد</option>
+                                    <option value="د. فاطمة">د. فاطمة</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                    <i class="fas fa-check-circle"></i> حالة الإعارة
+                                </label>
+                                <select id="borrowSearchStatus" class="form-control" onchange="searchBorrow()">
+                                    <option value="">جميع الحالات</option>
+                                    <option value="نشطة">نشطة</option>
+                                    <option value="تم الإرجاع">تم الإرجاع</option>
+                                    <option value="ملغية">ملغية</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -2070,7 +2227,7 @@
                     <h3><i class="fas fa-info-circle"></i> معلومات النظام</h3>
                     <div class="settings-item">
                         <label>إصدار النظام</label>
-                        <span>2.4.0</span>
+                        <span>2.5.0</span>
                     </div>
                     <div class="settings-item">
                         <label>تاريخ الإنشاء</label>
@@ -2170,7 +2327,7 @@
                     <li><strong>الرئيسية:</strong> نظرة عامة وإحصائيات سريعة</li>
                     <li><strong>الكتب:</strong> إدارة وعرض جميع الكتب في المكتبة</li>
                     <li><strong>الطلاب:</strong> إدارة سجلات الطلاب المسجلين</li>
-                    <li><strong>الإعارة:</strong> نظام إعارة الكتب وتتبعها</li>
+                    <li><strong>الإعارة:</strong> نظام إعارة الكتب وتتبعها مع بحث متقدم</li>
                     <li><strong>الأساتذة:</strong> قاعدة بيانات أساتذة القسم</li>
                     <li><strong>التقارير:</strong> إحصائيات وتقارير مفصلة</li>
                     <li><strong>إعدادات المطور:</strong> تخصيص النظام وإدارة البيانات</li>
@@ -2187,6 +2344,7 @@
                     <p>✓ <strong>تصدير واستيراد Excel (CSV) متكامل</strong></p>
                     <p>✓ <strong>إضافة حقل الملاحظات للطلاب والأساتذة والكتب والإعارات</strong></p>
                     <p>✓ <strong>تقارير مفصلة لكل البيانات مع إمكانية التصدير</strong></p>
+                    <p>✓ <strong>نظام بحث متقدم في قسم الإعارة حسب نوع الطالب ونوع الكتاب</strong></p>
                 </div>
                 
                 <h4>التقارير المفصلة:</h4>
@@ -2196,6 +2354,18 @@
                     <p>✓ إحصائيات مفصلة مع نسب مئوية</p>
                     <p>✓ إمكانية تصدير التقارير كملفات PDF أو Excel</p>
                     <p>✓ تصفية البيانات حسب التاريخ أو النوع أو الحالة</p>
+                </div>
+                
+                <h4>بحث الإعارة المتقدم:</h4>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p>✓ البحث حسب اسم الطالب أو رقمه الجامعي أو قسمه</p>
+                    <p>✓ البحث حسب عنوان الكتاب أو مؤلفه أو تصنيفه</p>
+                    <p>✓ البحث حسب التاريخ (اليوم، الأسبوع، الشهر)</p>
+                    <p>✓ البحث حسب حالة الإعارة (نشطة، مُرجعة، ملغية)</p>
+                    <p>✓ البحث حسب الأستاذ المشرف على الإعارة</p>
+                    <p>✓ فلترة حسب الإعارات المتأخرة فقط</p>
+                    <p>✓ مؤشرات توضح نتائج البحث</p>
+                    <p>✓ فلاتر نشطة يمكن إزالتها بسهولة</p>
                 </div>
                 
                 <h4>استرداد البيانات:</h4>
@@ -2234,6 +2404,7 @@
                     <p>✓ استخدم خيار البحث للعثور على أي شيء بسرعة</p>
                     <p>✓ استخدم حقل الملاحظات لتسجيل معلومات إضافية مهمة</p>
                     <p>✓ استخدم التقارير المفصلة لمتابعة أداء النظام</p>
+                    <p>✓ استخدم البحث المتقدم في قسم الإعارة للعثور على الإعارات بسرعة</p>
                 </div>
                 
                 <p style="text-align: center; color: var(--primary); font-weight: bold; margin-top: 20px;">
@@ -4522,7 +4693,7 @@
         }
 
         // ============================================
-        // إدارة الإعارة
+        // إدارة الإعارة مع البحث المتقدم
         // ============================================
         function loadBorrow() {
             const borrowGrid = document.getElementById('borrowGrid');
@@ -4542,6 +4713,12 @@
                 return;
             }
             
+            // عرض جميع الإعارات عند التحميل الأول
+            displayBorrows(borrows);
+        }
+
+        function displayBorrows(borrows) {
+            const borrowGrid = document.getElementById('borrowGrid');
             const today = new Date();
             const activeBorrows = borrows.filter(b => b.status === 'نشطة');
             
@@ -4549,7 +4726,7 @@
                 <div style="margin-bottom: 20px; padding: 15px; background: var(--hover-bg); border-radius: var(--radius); border-right: 4px solid var(--secondary);">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                         <div>
-                            <strong>الإعارات النشطة:</strong> ${activeBorrows.length} من ${borrows.length}
+                            <strong>عرض ${borrows.length} من ${libraryData.borrow.length} إعارة</strong>
                         </div>
                         <div>
                             ${activeBorrows.filter(b => {
@@ -4628,6 +4805,242 @@
             `;
         }
 
+        // ============================================
+        // البحث المتقدم في الإعارة
+        // ============================================
+        function searchBorrow() {
+            const studentSearch = document.getElementById('borrowSearchStudent').value.toLowerCase();
+            const bookSearch = document.getElementById('borrowSearchBook').value.toLowerCase();
+            const dateFilter = document.getElementById('borrowSearchDate').value;
+            const professorFilter = document.getElementById('borrowSearchProfessor') ? document.getElementById('borrowSearchProfessor').value : '';
+            const statusFilter = document.getElementById('borrowSearchStatus') ? document.getElementById('borrowSearchStatus').value : '';
+            
+            let filteredBorrows = [...libraryData.borrow];
+            
+            // فلترة حسب الطالب
+            if (studentSearch) {
+                filteredBorrows = filteredBorrows.filter(borrow => {
+                    const student = libraryData.students.find(s => s.id === borrow.studentId);
+                    if (!student) return false;
+                    
+                    return student.name.toLowerCase().includes(studentSearch) ||
+                           (student.studentId && student.studentId.toLowerCase().includes(studentSearch)) ||
+                           (student.department && student.department.toLowerCase().includes(studentSearch)) ||
+                           (student.level && student.level.toLowerCase().includes(studentSearch));
+                });
+            }
+            
+            // فلترة حسب الكتاب
+            if (bookSearch) {
+                filteredBorrows = filteredBorrows.filter(borrow => {
+                    const book = libraryData.books.find(b => b.id === borrow.bookId);
+                    if (!book) return false;
+                    
+                    return borrow.bookTitle.toLowerCase().includes(bookSearch) ||
+                           (book.author && book.author.toLowerCase().includes(bookSearch)) ||
+                           (book.category && book.category.toLowerCase().includes(bookSearch)) ||
+                           (book.shelf && book.shelf.toLowerCase().includes(bookSearch));
+                });
+            }
+            
+            // فلترة حسب التاريخ
+            if (dateFilter) {
+                const today = new Date();
+                const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+                
+                filteredBorrows = filteredBorrows.filter(borrow => {
+                    const borrowDate = new Date(borrow.borrowDate);
+                    const dueDate = new Date(borrow.dueDate);
+                    
+                    switch(dateFilter) {
+                        case 'today':
+                            return borrowDate.toDateString() === today.toDateString();
+                        case 'week':
+                            return borrowDate >= weekAgo;
+                        case 'month':
+                            return borrowDate >= monthAgo;
+                        case 'late':
+                            return borrow.status === 'نشطة' && today > dueDate;
+                        case 'active':
+                            return borrow.status === 'نشطة';
+                        case 'returned':
+                            return borrow.status === 'تم الإرجاع';
+                        default:
+                            return true;
+                    }
+                });
+            }
+            
+            // فلترة حسب الأستاذ المشرف
+            if (professorFilter) {
+                filteredBorrows = filteredBorrows.filter(borrow => 
+                    borrow.professor === professorFilter
+                );
+            }
+            
+            // فلترة حسب حالة الإعارة
+            if (statusFilter) {
+                filteredBorrows = filteredBorrows.filter(borrow => 
+                    borrow.status === statusFilter
+                );
+            }
+            
+            // تحديث الفلاتر النشطة
+            updateBorrowFilterTags(studentSearch, bookSearch, dateFilter, professorFilter, statusFilter);
+            
+            // عرض مؤشر البحث
+            const searchIndicator = document.getElementById('borrowSearchIndicator');
+            if (studentSearch || bookSearch || dateFilter || professorFilter || statusFilter) {
+                searchIndicator.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-filter" style="color: var(--secondary);"></i>
+                        <span>عرض ${filteredBorrows.length} نتيجة من ${libraryData.borrow.length} إعارة</span>
+                    </div>
+                `;
+                searchIndicator.style.display = 'block';
+            } else {
+                searchIndicator.style.display = 'none';
+            }
+            
+            // عرض النتائج
+            if (filteredBorrows.length === 0) {
+                document.getElementById('borrowGrid').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج للبحث</h3>
+                        <p>لم يتم العثور على إعارات تطابق معايير البحث المحددة.</p>
+                        <button class="btn btn-primary" onclick="clearBorrowSearch()" style="margin-top: 20px;">
+                            <i class="fas fa-times"></i> مسح البحث
+                        </button>
+                    </div>
+                `;
+            } else {
+                displayBorrows(filteredBorrows);
+            }
+        }
+
+        function updateBorrowFilterTags(studentSearch, bookSearch, dateFilter, professorFilter, statusFilter) {
+            const filterTagsContainer = document.getElementById('borrowFilterTags');
+            let tagsHTML = '';
+            
+            const filterLabels = {
+                'today': 'اليوم',
+                'week': 'هذا الأسبوع',
+                'month': 'هذا الشهر',
+                'late': 'متأخرة',
+                'active': 'نشطة فقط',
+                'returned': 'مُرجعة فقط',
+                'نشطة': 'نشطة',
+                'تم الإرجاع': 'مُرجعة',
+                'ملغية': 'ملغية'
+            };
+            
+            if (studentSearch) {
+                tagsHTML += `
+                    <div class="filter-tag">
+                        <span>طالب: "${studentSearch}"</span>
+                        <button class="remove-filter" onclick="clearStudentSearch()">×</button>
+                    </div>
+                `;
+            }
+            
+            if (bookSearch) {
+                tagsHTML += `
+                    <div class="filter-tag">
+                        <span>كتاب: "${bookSearch}"</span>
+                        <button class="remove-filter" onclick="clearBookSearch()">×</button>
+                    </div>
+                `;
+            }
+            
+            if (dateFilter) {
+                tagsHTML += `
+                    <div class="filter-tag">
+                        <span>${filterLabels[dateFilter] || dateFilter}</span>
+                        <button class="remove-filter" onclick="clearDateFilter()">×</button>
+                    </div>
+                `;
+            }
+            
+            if (professorFilter) {
+                tagsHTML += `
+                    <div class="filter-tag">
+                        <span>أستاذ: ${professorFilter}</span>
+                        <button class="remove-filter" onclick="clearProfessorFilter()">×</button>
+                    </div>
+                `;
+            }
+            
+            if (statusFilter) {
+                tagsHTML += `
+                    <div class="filter-tag">
+                        <span>${filterLabels[statusFilter] || statusFilter}</span>
+                        <button class="remove-filter" onclick="clearStatusFilter()">×</button>
+                    </div>
+                `;
+            }
+            
+            filterTagsContainer.innerHTML = tagsHTML;
+        }
+
+        function clearStudentSearch() {
+            document.getElementById('borrowSearchStudent').value = '';
+            searchBorrow();
+        }
+
+        function clearBookSearch() {
+            document.getElementById('borrowSearchBook').value = '';
+            searchBorrow();
+        }
+
+        function clearDateFilter() {
+            document.getElementById('borrowSearchDate').value = '';
+            searchBorrow();
+        }
+
+        function clearProfessorFilter() {
+            if (document.getElementById('borrowSearchProfessor')) {
+                document.getElementById('borrowSearchProfessor').value = '';
+                searchBorrow();
+            }
+        }
+
+        function clearStatusFilter() {
+            if (document.getElementById('borrowSearchStatus')) {
+                document.getElementById('borrowSearchStatus').value = '';
+                searchBorrow();
+            }
+        }
+
+        function clearBorrowSearch() {
+            document.getElementById('borrowSearchStudent').value = '';
+            document.getElementById('borrowSearchBook').value = '';
+            document.getElementById('borrowSearchDate').value = '';
+            
+            if (document.getElementById('borrowSearchProfessor')) {
+                document.getElementById('borrowSearchProfessor').value = '';
+            }
+            
+            if (document.getElementById('borrowSearchStatus')) {
+                document.getElementById('borrowSearchStatus').value = '';
+            }
+            
+            document.getElementById('borrowFilterTags').innerHTML = '';
+            document.getElementById('borrowSearchIndicator').style.display = 'none';
+            
+            loadBorrow();
+        }
+
+        function toggleBorrowFilters() {
+            const additionalFilters = document.getElementById('additionalFilters');
+            const isVisible = additionalFilters.style.display === 'block';
+            additionalFilters.style.display = isVisible ? 'none' : 'block';
+        }
+
+        // ============================================
+        // وظائف الإعارة الأساسية
+        // ============================================
         function showBorrowModal() {
             if (currentUser.role === 'student') {
                 showNotification('غير مسموح لك بإضافة إعارات', 'error');
@@ -5004,7 +5417,7 @@
         }
 
         // ============================================
-        // وظائف البحث
+        // وظائف البحث في الأقسام الأخرى
         // ============================================
         function searchBooks() {
             const searchTerm = document.getElementById('bookSearch').value.toLowerCase();
@@ -5632,7 +6045,7 @@
                 metadata: {
                     exportDate: new Date().toISOString(),
                     exportedBy: currentUser.name,
-                    version: '2.4.0'
+                    version: '2.5.0'
                 }
             };
             
@@ -6090,8 +6503,9 @@
         // بداية التشغيل
         // ============================================
         console.log('✅ نظام المكتبة القانونية - مركز أورنمو');
-        console.log('📚 الإصدار: 2.4.0 | جميع الحقوق محفوظة');
-        console.log('🎨 نظام متكامل مع تقارير مفصلة وتصميم متجاوب');
+        console.log('📚 الإصدار: 2.5.0 | جميع الحقوق محفوظة');
+        console.log('🎨 نظام متكامل مع بحث متقدم في الإعارة');
+        console.log('🔍 إضافة نظام بحث متقدم في قسم الإعارة');
         console.log('📊 نظام استرداد JSON منفصل بدون الحاجة للدخول');
         console.log('📁 إضافة خاصية استيراد JSON للطلاب والأساتذة');
         console.log('📈 نظام تصدير واستيراد Excel (CSV) متكامل');
