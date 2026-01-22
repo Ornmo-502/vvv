@@ -3374,7 +3374,7 @@
         }
 
         // ============================================
-        // إدارة الكتب (مختصرة للاختصار)
+        // إدارة الكتب
         // ============================================
         function loadBooks() {
             const booksGrid = document.getElementById('booksGrid');
@@ -3422,6 +3422,10 @@
                                     <span class="info-label">رقم الرف:</span>
                                     <span class="info-value">${book.shelf || 'غير محدد'}</span>
                                 </div>
+                                <div class="student-item">
+                                    <span class="info-label">سنة النشر:</span>
+                                    <span class="info-value">${book.year || 'غير محدد'}</span>
+                                </div>
                                 ${book.notes ? `
                                 <div class="notes-section">
                                     <div class="notes-label">
@@ -3461,8 +3465,14 @@
                 return;
             }
             
+            imageDataUrl = null;
+            
             openModal('إضافة كتاب جديد', `
                 <div style="margin: 20px 0;">
+                    <div class="image-preview-container" id="bookImagePreviewContainer" style="display: none;">
+                        <img id="bookImagePreview" class="image-preview" alt="صورة الكتاب">
+                    </div>
+                    
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
                             <i class="fas fa-book"></i> عنوان الكتاب
@@ -3481,21 +3491,40 @@
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
                             <i class="fas fa-tag"></i> التصنيف
                         </label>
-                        <input type="text" id="newBookCategory" class="form-control" placeholder="أدخل التصنيف">
+                        <input type="text" id="newBookCategory" class="form-control" placeholder="أدخل التصنيف" value="قانون">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-calendar"></i> سنة النشر
+                            </label>
+                            <input type="number" id="newBookYear" class="form-control" placeholder="سنة النشر" value="${new Date().getFullYear()}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-barcode"></i> رقم الرف
+                            </label>
+                            <input type="text" id="newBookShelf" class="form-control" value="SHELF-${libraryData.books.length + 100}">
+                        </div>
                     </div>
                     
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
-                            <i class="fas fa-calendar"></i> سنة النشر
+                            <i class="fas fa-sticky-note"></i> ملاحظات
                         </label>
-                        <input type="number" id="newBookYear" class="form-control" placeholder="سنة النشر" value="${new Date().getFullYear()}">
+                        <textarea id="newBookNotes" class="textarea-control" placeholder="أدخل أي ملاحظات إضافية عن الكتاب..." rows="3"></textarea>
                     </div>
                     
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
-                            <i class="fas fa-barcode"></i> رقم الرف
+                            <i class="fas fa-camera"></i> صورة الكتاب
                         </label>
-                        <input type="text" id="newBookShelf" class="form-control" value="SHELF-${libraryData.books.length + 100}">
+                        <input type="file" id="bookImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="image-upload-btn" onclick="document.getElementById('bookImageInput').click()">
+                            <i class="fas fa-upload"></i> رفع صورة
+                        </button>
                     </div>
                     
                     <button onclick="processAddBook()" class="btn btn-success" style="width: 100%;">
@@ -3503,6 +3532,10 @@
                     </button>
                 </div>
             `);
+            
+            document.getElementById('bookImageInput').addEventListener('change', function(e) {
+                handleImageUpload(e.target, 'bookImagePreview', 'bookImagePreviewContainer');
+            });
         }
 
         function processAddBook() {
@@ -3522,7 +3555,9 @@
                 status: 'متاح',
                 type: 'كتاب دراسي',
                 addedDate: new Date().toISOString().split('T')[0],
-                borrowCount: 0
+                borrowCount: 0,
+                notes: document.getElementById('newBookNotes').value || '',
+                imageUrl: imageDataUrl
             };
             
             libraryData.books.push(newBook);
@@ -3533,6 +3568,1870 @@
             
             showNotification('تمت إضافة الكتاب بنجاح', 'success');
             logActivity('add_book', `إضافة كتاب "${title}"`);
+        }
+
+        function showEditBookModal(bookId) {
+            const book = libraryData.books.find(b => b.id === bookId);
+            if (!book) return;
+            
+            imageDataUrl = book.imageUrl || null;
+            
+            openModal('تعديل كتاب', `
+                <div style="margin: 20px 0;">
+                    <div class="image-preview-container" id="editBookImagePreviewContainer" style="${book.imageUrl ? '' : 'display: none;'}">
+                        <img id="editBookImagePreview" class="image-preview" src="${book.imageUrl || ''}" alt="صورة الكتاب">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-book"></i> عنوان الكتاب
+                        </label>
+                        <input type="text" id="editBookTitle" class="form-control" value="${book.title}" required>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-user"></i> المؤلف
+                        </label>
+                        <input type="text" id="editBookAuthor" class="form-control" value="${book.author || ''}">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-tag"></i> التصنيف
+                            </label>
+                            <input type="text" id="editBookCategory" class="form-control" value="${book.category || ''}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-barcode"></i> رقم الرف
+                            </label>
+                            <input type="text" id="editBookShelf" class="form-control" value="${book.shelf || ''}">
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-calendar"></i> سنة النشر
+                            </label>
+                            <input type="number" id="editBookYear" class="form-control" value="${book.year || ''}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-check-circle"></i> الحالة
+                            </label>
+                            <select id="editBookStatus" class="form-control">
+                                <option value="متاح" ${book.status === 'متاح' ? 'selected' : ''}>متاح</option>
+                                <option value="مستعار" ${book.status === 'مستعار' ? 'selected' : ''}>مستعار</option>
+                                <option value="تحت الصيانة" ${book.status === 'تحت الصيانة' ? 'selected' : ''}>تحت الصيانة</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-sticky-note"></i> ملاحظات
+                        </label>
+                        <textarea id="editBookNotes" class="textarea-control" rows="3">${book.notes || ''}</textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-camera"></i> صورة الكتاب
+                        </label>
+                        <input type="file" id="editBookImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="image-upload-btn" onclick="document.getElementById('editBookImageInput').click()">
+                            <i class="fas fa-upload"></i> تغيير الصورة
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="processEditBook(${book.id})" class="btn btn-success" style="flex: 1;">
+                            <i class="fas fa-save"></i> حفظ التغييرات
+                        </button>
+                        <button onclick="closeModal()" class="btn btn-danger" style="flex: 1;">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            document.getElementById('editBookImageInput').addEventListener('change', function(e) {
+                handleImageUpload(e.target, 'editBookImagePreview', 'editBookImagePreviewContainer');
+            });
+        }
+
+        function processEditBook(bookId) {
+            const book = libraryData.books.find(b => b.id === bookId);
+            if (!book) return;
+            
+            const title = document.getElementById('editBookTitle').value.trim();
+            if (!title) {
+                showNotification('الرجاء إدخال عنوان الكتاب', 'error');
+                return;
+            }
+            
+            book.title = title;
+            book.author = document.getElementById('editBookAuthor').value || 'غير معروف';
+            book.category = document.getElementById('editBookCategory').value || 'عام';
+            book.shelf = document.getElementById('editBookShelf').value || '';
+            book.year = document.getElementById('editBookYear').value || '';
+            book.status = document.getElementById('editBookStatus').value;
+            book.notes = document.getElementById('editBookNotes').value || '';
+            book.imageUrl = imageDataUrl || book.imageUrl;
+            
+            saveData();
+            closeModal();
+            loadBooks();
+            
+            showNotification('تم تحديث الكتاب بنجاح', 'success');
+            logActivity('edit_book', `تعديل كتاب "${title}"`);
+        }
+
+        function deleteBook(bookId) {
+            showConfirmModal(
+                'حذف الكتاب',
+                'هل أنت متأكد من حذف هذا الكتاب؟ لا يمكن التراجع عن هذه العملية.',
+                function(result) {
+                    if (result) {
+                        const bookIndex = libraryData.books.findIndex(b => b.id === bookId);
+                        if (bookIndex !== -1) {
+                            const bookTitle = libraryData.books[bookIndex].title;
+                            libraryData.books.splice(bookIndex, 1);
+                            saveData();
+                            loadBooks();
+                            updateDashboard();
+                            
+                            showNotification('تم حذف الكتاب بنجاح', 'success');
+                            logActivity('delete_book', `حذف كتاب "${bookTitle}"`);
+                        }
+                    }
+                }
+            );
+        }
+
+        // ============================================
+        // إدارة الطلاب
+        // ============================================
+        function loadStudents() {
+            const studentsGrid = document.getElementById('studentsGrid');
+            const students = libraryData.students;
+            
+            if (students.length === 0) {
+                studentsGrid.innerHTML = `
+                    <div class="empty-state" id="studentsEmptyState">
+                        <i class="fas fa-user-graduate"></i>
+                        <h3>لا توجد طلاب مسجلين</h3>
+                        <p>لم تتم إضافة أي طلاب بعد. يمكنك البدء بإضافة طلاب جدد باستخدام الزر أدناه.</p>
+                        <button class="btn btn-success" onclick="showAddStudentModal()" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i> إضافة أول طالب
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            studentsGrid.innerHTML = `
+                <div class="student-cards-grid">
+                    ${students.map((student, index) => `
+                        <div class="student-card">
+                            <div class="student-header">
+                                ${student.avatar ? `
+                                    <img src="${student.avatar}" class="student-avatar" alt="${student.name}" onclick="showStudentAvatar('${student.avatar}', '${student.name}')">
+                                ` : `
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=${libraryData.settings.primaryColor.slice(1)}&color=fff&size=70" class="student-avatar" alt="${student.name}">
+                                `}
+                                <div class="student-title">${student.name}</div>
+                                <div class="student-number">${index + 1}</div>
+                            </div>
+                            
+                            <div class="student-content">
+                                <div class="student-item">
+                                    <span class="info-label">الرقم الجامعي:</span>
+                                    <span class="info-value">${student.studentId || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">المستوى:</span>
+                                    <span class="info-value">${student.level || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">القسم:</span>
+                                    <span class="info-value">${student.department || 'القانون'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">البريد:</span>
+                                    <span class="info-value">${student.email || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">الهاتف:</span>
+                                    <span class="info-value">${student.phone || 'غير محدد'}</span>
+                                </div>
+                            </div>
+                            
+                            ${student.notes ? `
+                            <div class="notes-section">
+                                <div class="notes-label">
+                                    <i class="fas fa-sticky-note"></i>
+                                    <span>ملاحظات:</span>
+                                </div>
+                                <div class="notes-content">${student.notes}</div>
+                            </div>
+                            ` : ''}
+                            
+                            <div class="student-history">
+                                <div>تاريخ التسجيل: ${student.joinDate || 'غير محدد'}</div>
+                                <span class="history-badge ${student.status === 'نشط' ? 'member-badge' : 'admin-badge'}">
+                                    ${student.status || 'نشط'}
+                                </span>
+                            </div>
+                            
+                            <div class="student-actions">
+                                ${currentUser.role !== 'student' ? `
+                                    <button class="btn-sm btn-primary" onclick="showEditStudentModal(${student.id})">
+                                        <i class="fas fa-edit"></i> تعديل
+                                    </button>
+                                ` : ''}
+                                <button class="btn-sm btn-success" onclick="showStudentDetails(${student.id})">
+                                    <i class="fas fa-eye"></i> تفاصيل
+                                </button>
+                                ${currentUser.role === 'admin' ? `
+                                    <button class="btn-sm btn-danger" onclick="deleteStudent(${student.id})">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function showAddStudentModal() {
+            if (currentUser.role === 'student') {
+                showNotification('غير مسموح لك بإضافة طلاب', 'error');
+                return;
+            }
+            
+            imageDataUrl = null;
+            
+            openModal('إضافة طالب جديد', `
+                <div style="margin: 20px 0;">
+                    <div class="image-preview-container" id="imagePreviewContainer" style="display: none;">
+                        <img id="studentImagePreview" class="image-preview" alt="صورة الطالب">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-user"></i> اسم الطالب
+                        </label>
+                        <input type="text" id="newStudentName" class="form-control" placeholder="أدخل اسم الطالب" required>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-id-card"></i> الرقم الجامعي
+                        </label>
+                        <input type="text" id="newStudentId" class="form-control" placeholder="أدخل الرقم الجامعي">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-graduation-cap"></i> المستوى
+                            </label>
+                            <select id="newStudentLevel" class="form-control">
+                                <option value="الأول">الأول</option>
+                                <option value="الثاني">الثاني</option>
+                                <option value="الثالث">الثالث</option>
+                                <option value="الرابع">الرابع</option>
+                                <option value="خريج">خريج</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-building"></i> القسم
+                            </label>
+                            <select id="newStudentDepartment" class="form-control">
+                                <option value="القانون">القانون</option>
+                                <option value="القانون الخاص">القانون الخاص</option>
+                                <option value="القانون العام">القانون العام</option>
+                                <option value="الشريعة">الشريعة</option>
+                                <option value="القضاء">القضاء</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-envelope"></i> البريد الإلكتروني
+                            </label>
+                            <input type="email" id="newStudentEmail" class="form-control" placeholder="example@email.com">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-phone"></i> رقم الهاتف
+                            </label>
+                            <input type="tel" id="newStudentPhone" class="form-control" placeholder="05XXXXXXXX">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-calendar"></i> تاريخ الانضمام
+                        </label>
+                        <input type="date" id="newStudentJoinDate" class="form-control" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-sticky-note"></i> ملاحظات
+                        </label>
+                        <textarea id="newStudentNotes" class="textarea-control" placeholder="أدخل أي ملاحظات إضافية عن الطالب..." rows="3"></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-camera"></i> صورة الطالب
+                        </label>
+                        <input type="file" id="studentImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="image-upload-btn" onclick="document.getElementById('studentImageInput').click()">
+                            <i class="fas fa-upload"></i> رفع صورة
+                        </button>
+                    </div>
+                    
+                    <button onclick="processAddStudent()" class="btn btn-success" style="width: 100%;">
+                        <i class="fas fa-check"></i> إضافة الطالب
+                    </button>
+                </div>
+            `);
+            
+            document.getElementById('studentImageInput').addEventListener('change', function(e) {
+                handleImageUpload(e.target, 'studentImagePreview', 'imagePreviewContainer');
+            });
+        }
+
+        function processAddStudent() {
+            const name = document.getElementById('newStudentName').value.trim();
+            if (!name) {
+                showNotification('الرجاء إدخال اسم الطالب', 'error');
+                return;
+            }
+            
+            const newStudent = {
+                id: Date.now(),
+                name: name,
+                studentId: document.getElementById('newStudentId').value,
+                level: document.getElementById('newStudentLevel').value || 'الأول',
+                department: document.getElementById('newStudentDepartment').value || 'القانون',
+                email: document.getElementById('newStudentEmail').value,
+                phone: document.getElementById('newStudentPhone').value,
+                joinDate: document.getElementById('newStudentJoinDate').value || new Date().toISOString().split('T')[0],
+                status: 'نشط',
+                avatar: imageDataUrl,
+                notes: document.getElementById('newStudentNotes').value || '',
+                borrowHistory: []
+            };
+            
+            libraryData.students.push(newStudent);
+            saveData();
+            closeModal();
+            loadStudents();
+            updateDashboard();
+            
+            showNotification('تمت إضافة الطالب بنجاح', 'success');
+            logActivity('add_student', `إضافة طالب "${name}"`);
+        }
+
+        function showEditStudentModal(studentId) {
+            const student = libraryData.students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            imageDataUrl = student.avatar || null;
+            
+            openModal('تعديل بيانات الطالب', `
+                <div style="margin: 20px 0;">
+                    <div class="image-preview-container" id="editStudentImagePreviewContainer" style="${student.avatar ? '' : 'display: none;'}">
+                        <img id="editStudentImagePreview" class="image-preview" src="${student.avatar || ''}" alt="صورة الطالب">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-user"></i> اسم الطالب
+                        </label>
+                        <input type="text" id="editStudentName" class="form-control" value="${student.name}" required>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-id-card"></i> الرقم الجامعي
+                        </label>
+                        <input type="text" id="editStudentId" class="form-control" value="${student.studentId || ''}">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-graduation-cap"></i> المستوى
+                            </label>
+                            <select id="editStudentLevel" class="form-control">
+                                <option value="الأول" ${student.level === 'الأول' ? 'selected' : ''}>الأول</option>
+                                <option value="الثاني" ${student.level === 'الثاني' ? 'selected' : ''}>الثاني</option>
+                                <option value="الثالث" ${student.level === 'الثالث' ? 'selected' : ''}>الثالث</option>
+                                <option value="الرابع" ${student.level === 'الرابع' ? 'selected' : ''}>الرابع</option>
+                                <option value="خريج" ${student.level === 'خريج' ? 'selected' : ''}>خريج</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-building"></i> القسم
+                            </label>
+                            <select id="editStudentDepartment" class="form-control">
+                                <option value="القانون" ${student.department === 'القانون' ? 'selected' : ''}>القانون</option>
+                                <option value="القانون الخاص" ${student.department === 'القانون الخاص' ? 'selected' : ''}>القانون الخاص</option>
+                                <option value="القانون العام" ${student.department === 'القانون العام' ? 'selected' : ''}>القانون العام</option>
+                                <option value="الشريعة" ${student.department === 'الشريعة' ? 'selected' : ''}>الشريعة</option>
+                                <option value="القضاء" ${student.department === 'القضاء' ? 'selected' : ''}>القضاء</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-envelope"></i> البريد الإلكتروني
+                            </label>
+                            <input type="email" id="editStudentEmail" class="form-control" value="${student.email || ''}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-phone"></i> رقم الهاتف
+                            </label>
+                            <input type="tel" id="editStudentPhone" class="form-control" value="${student.phone || ''}">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-calendar"></i> تاريخ الانضمام
+                        </label>
+                        <input type="date" id="editStudentJoinDate" class="form-control" value="${student.joinDate || new Date().toISOString().split('T')[0]}">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-check-circle"></i> الحالة
+                        </label>
+                        <select id="editStudentStatus" class="form-control">
+                            <option value="نشط" ${student.status === 'نشط' ? 'selected' : ''}>نشط</option>
+                            <option value="متخرج" ${student.status === 'متخرج' ? 'selected' : ''}>متخرج</option>
+                            <option value="ملغي" ${student.status === 'ملغي' ? 'selected' : ''}>ملغي</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-sticky-note"></i> ملاحظات
+                        </label>
+                        <textarea id="editStudentNotes" class="textarea-control" rows="3">${student.notes || ''}</textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-camera"></i> صورة الطالب
+                        </label>
+                        <input type="file" id="editStudentImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="image-upload-btn" onclick="document.getElementById('editStudentImageInput').click()">
+                            <i class="fas fa-upload"></i> تغيير الصورة
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="processEditStudent(${student.id})" class="btn btn-success" style="flex: 1;">
+                            <i class="fas fa-save"></i> حفظ التغييرات
+                        </button>
+                        <button onclick="closeModal()" class="btn btn-danger" style="flex: 1;">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            document.getElementById('editStudentImageInput').addEventListener('change', function(e) {
+                handleImageUpload(e.target, 'editStudentImagePreview', 'editStudentImagePreviewContainer');
+            });
+        }
+
+        function processEditStudent(studentId) {
+            const student = libraryData.students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const name = document.getElementById('editStudentName').value.trim();
+            if (!name) {
+                showNotification('الرجاء إدخال اسم الطالب', 'error');
+                return;
+            }
+            
+            student.name = name;
+            student.studentId = document.getElementById('editStudentId').value;
+            student.level = document.getElementById('editStudentLevel').value;
+            student.department = document.getElementById('editStudentDepartment').value;
+            student.email = document.getElementById('editStudentEmail').value;
+            student.phone = document.getElementById('editStudentPhone').value;
+            student.joinDate = document.getElementById('editStudentJoinDate').value;
+            student.status = document.getElementById('editStudentStatus').value;
+            student.notes = document.getElementById('editStudentNotes').value || '';
+            student.avatar = imageDataUrl || student.avatar;
+            
+            saveData();
+            closeModal();
+            loadStudents();
+            
+            showNotification('تم تحديث بيانات الطالب بنجاح', 'success');
+            logActivity('edit_student', `تعديل بيانات طالب "${name}"`);
+        }
+
+        function deleteStudent(studentId) {
+            showConfirmModal(
+                'حذف الطالب',
+                'هل أنت متأكد من حذف هذا الطالب؟ لا يمكن التراجع عن هذه العملية.',
+                function(result) {
+                    if (result) {
+                        const studentIndex = libraryData.students.findIndex(s => s.id === studentId);
+                        if (studentIndex !== -1) {
+                            const studentName = libraryData.students[studentIndex].name;
+                            libraryData.students.splice(studentIndex, 1);
+                            saveData();
+                            loadStudents();
+                            updateDashboard();
+                            
+                            showNotification('تم حذف الطالب بنجاح', 'success');
+                            logActivity('delete_student', `حذف طالب "${studentName}"`);
+                        }
+                    }
+                }
+            );
+        }
+
+        // ============================================
+        // إدارة الأساتذة
+        // ============================================
+        function loadProfessors() {
+            const professorsGrid = document.getElementById('professorsGrid');
+            const professors = libraryData.professors;
+            
+            if (professors.length === 0) {
+                professorsGrid.innerHTML = `
+                    <div class="empty-state" id="professorsEmptyState">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                        <h3>لا توجد أساتذة مسجلين</h3>
+                        <p>لم تتم إضافة أي أساتذة بعد. يمكنك البدء بإضافة أساتذة جدد باستخدام الزر أدناه.</p>
+                        <button class="btn btn-success" onclick="showAddProfessorModal()" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i> إضافة أول أستاذ
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            professorsGrid.innerHTML = `
+                <div class="cards-grid">
+                    ${professors.map(professor => `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">${professor.name}</div>
+                                <span class="card-badge">${professor.rank || 'أستاذ'}</span>
+                            </div>
+                            <div class="card-body">
+                                ${professor.avatar ? `
+                                <div style="text-align: center; margin-bottom: 15px;">
+                                    <img src="${professor.avatar}" class="professor-avatar" alt="${professor.name}">
+                                </div>
+                                ` : ''}
+                                <div class="student-item">
+                                    <span class="info-label">التخصص:</span>
+                                    <span class="info-value">${professor.specialization || 'قانون'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">القسم:</span>
+                                    <span class="info-value">${professor.department || 'القانون'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">البريد:</span>
+                                    <span class="info-value">${professor.email || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">الهاتف:</span>
+                                    <span class="info-value">${professor.phone || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">المكتب:</span>
+                                    <span class="info-value">${professor.office || 'غير محدد'}</span>
+                                </div>
+                                ${professor.notes ? `
+                                <div class="notes-section">
+                                    <div class="notes-label">
+                                        <i class="fas fa-sticky-note"></i>
+                                        <span>ملاحظات:</span>
+                                    </div>
+                                    <div class="notes-content">${professor.notes}</div>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="card-actions">
+                                ${currentUser.role !== 'student' ? `
+                                    <button class="btn-sm btn-primary" onclick="showEditProfessorModal(${professor.id})">
+                                        <i class="fas fa-edit"></i> تعديل
+                                    </button>
+                                ` : ''}
+                                <button class="btn-sm btn-success" onclick="showProfessorDetails(${professor.id})">
+                                    <i class="fas fa-eye"></i> تفاصيل
+                                </button>
+                                ${currentUser.role === 'admin' ? `
+                                    <button class="btn-sm btn-danger" onclick="deleteProfessor(${professor.id})">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function showAddProfessorModal() {
+            if (currentUser.role === 'student') {
+                showNotification('غير مسموح لك بإضافة أساتذة', 'error');
+                return;
+            }
+            
+            imageDataUrl = null;
+            
+            openModal('إضافة أستاذ جديد', `
+                <div style="margin: 20px 0;">
+                    <div class="image-preview-container" id="professorImagePreviewContainer" style="display: none;">
+                        <img id="professorImagePreview" class="image-preview" alt="صورة الأستاذ">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-user"></i> اسم الأستاذ
+                        </label>
+                        <input type="text" id="newProfessorName" class="form-control" placeholder="أدخل اسم الأستاذ" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-user-tag"></i> الرتبة العلمية
+                            </label>
+                            <select id="newProfessorRank" class="form-control">
+                                <option value="أستاذ">أستاذ</option>
+                                <option value="أستاذ مشارك">أستاذ مشارك</option>
+                                <option value="أستاذ مساعد">أستاذ مساعد</option>
+                                <option value="محاضر">محاضر</option>
+                                <option value="مدرس">مدرس</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-building"></i> القسم
+                            </label>
+                            <select id="newProfessorDepartment" class="form-control">
+                                <option value="القانون">القانون</option>
+                                <option value="القانون الخاص">القانون الخاص</option>
+                                <option value="القانون العام">القانون العام</option>
+                                <option value="الشريعة">الشريعة</option>
+                                <option value="القضاء">القضاء</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-graduation-cap"></i> التخصص
+                        </label>
+                        <input type="text" id="newProfessorSpecialization" class="form-control" placeholder="التخصص الرئيسي" value="قانون">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-envelope"></i> البريد الإلكتروني
+                            </label>
+                            <input type="email" id="newProfessorEmail" class="form-control" placeholder="professor@university.edu">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-phone"></i> رقم الهاتف
+                            </label>
+                            <input type="tel" id="newProfessorPhone" class="form-control" placeholder="05XXXXXXXX">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-door-open"></i> رقم المكتب
+                        </label>
+                        <input type="text" id="newProfessorOffice" class="form-control" placeholder="رقم المكتب">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-calendar"></i> تاريخ التعيين
+                        </label>
+                        <input type="date" id="newProfessorJoinDate" class="form-control" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-sticky-note"></i> ملاحظات
+                        </label>
+                        <textarea id="newProfessorNotes" class="textarea-control" placeholder="أدخل أي ملاحظات إضافية عن الأستاذ..." rows="3"></textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-camera"></i> صورة الأستاذ
+                        </label>
+                        <input type="file" id="professorImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="image-upload-btn" onclick="document.getElementById('professorImageInput').click()">
+                            <i class="fas fa-upload"></i> رفع صورة
+                        </button>
+                    </div>
+                    
+                    <button onclick="processAddProfessor()" class="btn btn-success" style="width: 100%;">
+                        <i class="fas fa-check"></i> إضافة الأستاذ
+                    </button>
+                </div>
+            `);
+            
+            document.getElementById('professorImageInput').addEventListener('change', function(e) {
+                handleImageUpload(e.target, 'professorImagePreview', 'professorImagePreviewContainer');
+            });
+        }
+
+        function processAddProfessor() {
+            const name = document.getElementById('newProfessorName').value.trim();
+            if (!name) {
+                showNotification('الرجاء إدخال اسم الأستاذ', 'error');
+                return;
+            }
+            
+            const newProfessor = {
+                id: Date.now(),
+                name: name,
+                rank: document.getElementById('newProfessorRank').value || 'أستاذ',
+                department: document.getElementById('newProfessorDepartment').value || 'القانون',
+                specialization: document.getElementById('newProfessorSpecialization').value || 'قانون',
+                email: document.getElementById('newProfessorEmail').value,
+                phone: document.getElementById('newProfessorPhone').value,
+                office: document.getElementById('newProfessorOffice').value,
+                joinDate: document.getElementById('newProfessorJoinDate').value || new Date().toISOString().split('T')[0],
+                avatar: imageDataUrl,
+                notes: document.getElementById('newProfessorNotes').value || '',
+                courses: []
+            };
+            
+            libraryData.professors.push(newProfessor);
+            saveData();
+            closeModal();
+            loadProfessors();
+            updateDashboard();
+            
+            showNotification('تمت إضافة الأستاذ بنجاح', 'success');
+            logActivity('add_professor', `إضافة أستاذ "${name}"`);
+        }
+
+        function showEditProfessorModal(professorId) {
+            const professor = libraryData.professors.find(p => p.id === professorId);
+            if (!professor) return;
+            
+            imageDataUrl = professor.avatar || null;
+            
+            openModal('تعديل بيانات الأستاذ', `
+                <div style="margin: 20px 0;">
+                    <div class="image-preview-container" id="editProfessorImagePreviewContainer" style="${professor.avatar ? '' : 'display: none;'}">
+                        <img id="editProfessorImagePreview" class="image-preview" src="${professor.avatar || ''}" alt="صورة الأستاذ">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-user"></i> اسم الأستاذ
+                        </label>
+                        <input type="text" id="editProfessorName" class="form-control" value="${professor.name}" required>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-user-tag"></i> الرتبة العلمية
+                            </label>
+                            <select id="editProfessorRank" class="form-control">
+                                <option value="أستاذ" ${professor.rank === 'أستاذ' ? 'selected' : ''}>أستاذ</option>
+                                <option value="أستاذ مشارك" ${professor.rank === 'أستاذ مشارك' ? 'selected' : ''}>أستاذ مشارك</option>
+                                <option value="أستاذ مساعد" ${professor.rank === 'أستاذ مساعد' ? 'selected' : ''}>أستاذ مساعد</option>
+                                <option value="محاضر" ${professor.rank === 'محاضر' ? 'selected' : ''}>محاضر</option>
+                                <option value="مدرس" ${professor.rank === 'مدرس' ? 'selected' : ''}>مدرس</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-building"></i> القسم
+                            </label>
+                            <select id="editProfessorDepartment" class="form-control">
+                                <option value="القانون" ${professor.department === 'القانون' ? 'selected' : ''}>القانون</option>
+                                <option value="القانون الخاص" ${professor.department === 'القانون الخاص' ? 'selected' : ''}>القانون الخاص</option>
+                                <option value="القانون العام" ${professor.department === 'القانون العام' ? 'selected' : ''}>القانون العام</option>
+                                <option value="الشريعة" ${professor.department === 'الشريعة' ? 'selected' : ''}>الشريعة</option>
+                                <option value="القضاء" ${professor.department === 'القضاء' ? 'selected' : ''}>القضاء</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-graduation-cap"></i> التخصص
+                        </label>
+                        <input type="text" id="editProfessorSpecialization" class="form-control" value="${professor.specialization || ''}">
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-envelope"></i> البريد الإلكتروني
+                            </label>
+                            <input type="email" id="editProfessorEmail" class="form-control" value="${professor.email || ''}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-phone"></i> رقم الهاتف
+                            </label>
+                            <input type="tel" id="editProfessorPhone" class="form-control" value="${professor.phone || ''}">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-door-open"></i> رقم المكتب
+                        </label>
+                        <input type="text" id="editProfessorOffice" class="form-control" value="${professor.office || ''}">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-calendar"></i> تاريخ التعيين
+                        </label>
+                        <input type="date" id="editProfessorJoinDate" class="form-control" value="${professor.joinDate || ''}">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-sticky-note"></i> ملاحظات
+                        </label>
+                        <textarea id="editProfessorNotes" class="textarea-control" rows="3">${professor.notes || ''}</textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-camera"></i> صورة الأستاذ
+                        </label>
+                        <input type="file" id="editProfessorImageInput" accept="image/*" style="display: none;">
+                        <button type="button" class="image-upload-btn" onclick="document.getElementById('editProfessorImageInput').click()">
+                            <i class="fas fa-upload"></i> تغيير الصورة
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="processEditProfessor(${professor.id})" class="btn btn-success" style="flex: 1;">
+                            <i class="fas fa-save"></i> حفظ التغييرات
+                        </button>
+                        <button onclick="closeModal()" class="btn btn-danger" style="flex: 1;">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            document.getElementById('editProfessorImageInput').addEventListener('change', function(e) {
+                handleImageUpload(e.target, 'editProfessorImagePreview', 'editProfessorImagePreviewContainer');
+            });
+        }
+
+        function processEditProfessor(professorId) {
+            const professor = libraryData.professors.find(p => p.id === professorId);
+            if (!professor) return;
+            
+            const name = document.getElementById('editProfessorName').value.trim();
+            if (!name) {
+                showNotification('الرجاء إدخال اسم الأستاذ', 'error');
+                return;
+            }
+            
+            professor.name = name;
+            professor.rank = document.getElementById('editProfessorRank').value;
+            professor.department = document.getElementById('editProfessorDepartment').value;
+            professor.specialization = document.getElementById('editProfessorSpecialization').value;
+            professor.email = document.getElementById('editProfessorEmail').value;
+            professor.phone = document.getElementById('editProfessorPhone').value;
+            professor.office = document.getElementById('editProfessorOffice').value;
+            professor.joinDate = document.getElementById('editProfessorJoinDate').value;
+            professor.notes = document.getElementById('editProfessorNotes').value || '';
+            professor.avatar = imageDataUrl || professor.avatar;
+            
+            saveData();
+            closeModal();
+            loadProfessors();
+            
+            showNotification('تم تحديث بيانات الأستاذ بنجاح', 'success');
+            logActivity('edit_professor', `تعديل بيانات أستاذ "${name}"`);
+        }
+
+        function deleteProfessor(professorId) {
+            showConfirmModal(
+                'حذف الأستاذ',
+                'هل أنت متأكد من حذف هذا الأستاذ؟ لا يمكن التراجع عن هذه العملية.',
+                function(result) {
+                    if (result) {
+                        const professorIndex = libraryData.professors.findIndex(p => p.id === professorId);
+                        if (professorIndex !== -1) {
+                            const professorName = libraryData.professors[professorIndex].name;
+                            libraryData.professors.splice(professorIndex, 1);
+                            saveData();
+                            loadProfessors();
+                            updateDashboard();
+                            
+                            showNotification('تم حذف الأستاذ بنجاح', 'success');
+                            logActivity('delete_professor', `حذف أستاذ "${professorName}"`);
+                        }
+                    }
+                }
+            );
+        }
+
+        // ============================================
+        // إدارة الإعارة
+        // ============================================
+        function loadBorrow() {
+            const borrowGrid = document.getElementById('borrowGrid');
+            const borrows = libraryData.borrow;
+            
+            if (borrows.length === 0) {
+                borrowGrid.innerHTML = `
+                    <div class="empty-state" id="borrowEmptyState">
+                        <i class="fas fa-hand-holding"></i>
+                        <h3>لا توجد إعارات حالية</h3>
+                        <p>لم تتم إضافة أي إعارات بعد. يمكنك البدء بعملية إعارة جديدة باستخدام الزر أدناه.</p>
+                        <button class="btn btn-success" onclick="showBorrowModal()" style="margin-top: 20px;">
+                            <i class="fas fa-plus"></i> إضافة أول إعارة
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const today = new Date();
+            const activeBorrows = borrows.filter(b => b.status === 'نشطة');
+            
+            borrowGrid.innerHTML = `
+                <div style="margin-bottom: 20px; padding: 15px; background: var(--hover-bg); border-radius: var(--radius); border-right: 4px solid var(--secondary);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <strong>الإعارات النشطة:</strong> ${activeBorrows.length} من ${borrows.length}
+                        </div>
+                        <div>
+                            ${activeBorrows.filter(b => {
+                                const dueDate = new Date(b.dueDate);
+                                return today > dueDate;
+                            }).length} إعارة متأخرة
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cards-grid">
+                    ${borrows.map(borrow => {
+                        const dueDate = new Date(borrow.dueDate);
+                        const isLate = borrow.status === 'نشطة' && today > dueDate;
+                        const daysLate = isLate ? Math.floor((today - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+                        
+                        return `
+                            <div class="card" style="border-right: 4px solid ${isLate ? 'var(--accent)' : (borrow.status === 'تم الإرجاع' ? 'var(--success)' : 'var(--secondary)')};">
+                                <div class="card-header">
+                                    <div class="card-title">${borrow.bookTitle}</div>
+                                    <span class="card-badge" style="background: ${isLate ? 'var(--accent)' : (borrow.status === 'تم الإرجاع' ? 'var(--success)' : 'var(--secondary)')}">
+                                        ${borrow.status} ${isLate ? `(${daysLate} يوم)` : ''}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="student-item">
+                                        <span class="info-label">المستعير:</span>
+                                        <span class="info-value">${borrow.studentName}</span>
+                                    </div>
+                                    <div class="student-item">
+                                        <span class="info-label">تاريخ الإعارة:</span>
+                                        <span class="info-value">${borrow.borrowDate}</span>
+                                    </div>
+                                    <div class="student-item">
+                                        <span class="info-label">تاريخ الاستحقاق:</span>
+                                        <span class="info-value">${borrow.dueDate}</span>
+                                    </div>
+                                    <div class="student-item">
+                                        <span class="info-label">الإشراف:</span>
+                                        <span class="info-value">${borrow.professor || 'غير محدد'}</span>
+                                    </div>
+                                    ${borrow.notes ? `
+                                    <div class="notes-section">
+                                        <div class="notes-label">
+                                            <i class="fas fa-sticky-note"></i>
+                                            <span>ملاحظات:</span>
+                                        </div>
+                                        <div class="notes-content">${borrow.notes}</div>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                                <div class="card-actions">
+                                    ${borrow.status === 'نشطة' && currentUser.role !== 'student' ? `
+                                        <button class="btn-sm btn-success" onclick="returnBorrow(${borrow.id})">
+                                            <i class="fas fa-undo"></i> إرجاع
+                                        </button>
+                                        <button class="btn-sm btn-warning" onclick="extendBorrow(${borrow.id})">
+                                            <i class="fas fa-calendar-plus"></i> تمديد
+                                        </button>
+                                    ` : ''}
+                                    ${currentUser.role !== 'student' ? `
+                                        <button class="btn-sm btn-primary" onclick="showEditBorrowModal(${borrow.id})">
+                                            <i class="fas fa-edit"></i> تعديل
+                                        </button>
+                                    ` : ''}
+                                    ${currentUser.role === 'admin' ? `
+                                        <button class="btn-sm btn-danger" onclick="deleteBorrow(${borrow.id})">
+                                            <i class="fas fa-trash"></i> حذف
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function showBorrowModal() {
+            if (currentUser.role === 'student') {
+                showNotification('غير مسموح لك بإضافة إعارات', 'error');
+                return;
+            }
+            
+            const availableBooks = libraryData.books.filter(book => book.status === 'متاح');
+            const availableStudents = libraryData.students;
+            
+            if (availableBooks.length === 0) {
+                showNotification('لا توجد كتب متاحة للإعارة', 'error');
+                return;
+            }
+            
+            if (availableStudents.length === 0) {
+                showNotification('لا توجد طلاب مسجلين في النظام', 'error');
+                return;
+            }
+            
+            openModal('إعارة كتاب جديد', `
+                <div style="margin: 20px 0;">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-book"></i> اختيار الكتاب
+                        </label>
+                        <select id="borrowBookId" class="form-control" required>
+                            <option value="">اختر الكتاب</option>
+                            ${availableBooks.map(book => `
+                                <option value="${book.id}">${book.title} - ${book.author} (${book.shelf})</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-user-graduate"></i> اختيار الطالب
+                        </label>
+                        <select id="borrowStudentId" class="form-control" required>
+                            <option value="">اختر الطالب</option>
+                            ${availableStudents.map(student => `
+                                <option value="${student.id}">${student.name} - ${student.studentId || 'بدون رقم جامعي'}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-calendar"></i> تاريخ الإعارة
+                            </label>
+                            <input type="date" id="borrowDate" class="form-control" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-calendar-check"></i> تاريخ الاستحقاق
+                            </label>
+                            <input type="date" id="dueDate" class="form-control" value="${new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-chalkboard-teacher"></i> الأستاذ المشرف
+                        </label>
+                        <select id="borrowProfessor" class="form-control">
+                            <option value="">اختر الأستاذ المشرف</option>
+                            <option value="د. صفاء">د. صفاء</option>
+                            <option value="د. أحمد">د. أحمد</option>
+                            <option value="د. محمد">د. محمد</option>
+                            <option value="د. فاطمة">د. فاطمة</option>
+                            ${libraryData.professors.map(prof => `
+                                <option value="${prof.name}">${prof.name}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-sticky-note"></i> ملاحظات
+                        </label>
+                        <textarea id="borrowNotes" class="textarea-control" placeholder="أدخل أي ملاحظات عن عملية الإعارة..." rows="3"></textarea>
+                    </div>
+                    
+                    <button onclick="processBorrow()" class="btn btn-success" style="width: 100%;">
+                        <i class="fas fa-check"></i> إضافة الإعارة
+                    </button>
+                </div>
+            `);
+        }
+
+        function processBorrow() {
+            const bookId = parseInt(document.getElementById('borrowBookId').value);
+            const studentId = parseInt(document.getElementById('borrowStudentId').value);
+            
+            if (!bookId || !studentId) {
+                showNotification('الرجاء اختيار الكتاب والطالب', 'error');
+                return;
+            }
+            
+            const book = libraryData.books.find(b => b.id === bookId);
+            const student = libraryData.students.find(s => s.id === studentId);
+            
+            if (!book || !student) {
+                showNotification('الرجاء اختيار بيانات صحيحة', 'error');
+                return;
+            }
+            
+            const newBorrow = {
+                id: Date.now(),
+                bookId: bookId,
+                bookTitle: book.title,
+                studentId: studentId,
+                studentName: student.name,
+                borrowDate: document.getElementById('borrowDate').value,
+                dueDate: document.getElementById('dueDate').value,
+                professor: document.getElementById('borrowProfessor').value || 'غير محدد',
+                status: 'نشطة',
+                notes: document.getElementById('borrowNotes').value || '',
+                returnDate: null
+            };
+            
+            book.status = 'مستعار';
+            book.borrowCount = (book.borrowCount || 0) + 1;
+            
+            if (!student.borrowHistory) student.borrowHistory = [];
+            student.borrowHistory.push({
+                bookId: bookId,
+                bookTitle: book.title,
+                borrowDate: newBorrow.borrowDate,
+                returnDate: null
+            });
+            
+            libraryData.borrow.push(newBorrow);
+            saveData();
+            closeModal();
+            loadBorrow();
+            updateDashboard();
+            
+            showNotification('تمت إضافة الإعارة بنجاح', 'success');
+            logActivity('add_borrow', `إعارة كتاب "${book.title}" للطالب "${student.name}"`);
+        }
+
+        function showEditBorrowModal(borrowId) {
+            const borrow = libraryData.borrow.find(b => b.id === borrowId);
+            if (!borrow) return;
+            
+            const availableBooks = libraryData.books;
+            const availableStudents = libraryData.students;
+            
+            openModal('تعديل بيانات الإعارة', `
+                <div style="margin: 20px 0;">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-book"></i> اختيار الكتاب
+                        </label>
+                        <select id="editBorrowBookId" class="form-control" required>
+                            ${availableBooks.map(book => `
+                                <option value="${book.id}" ${book.id === borrow.bookId ? 'selected' : ''}>
+                                    ${book.title} - ${book.author} (${book.shelf})
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-user-graduate"></i> اختيار الطالب
+                        </label>
+                        <select id="editBorrowStudentId" class="form-control" required>
+                            ${availableStudents.map(student => `
+                                <option value="${student.id}" ${student.id === borrow.studentId ? 'selected' : ''}>
+                                    ${student.name} - ${student.studentId || 'بدون رقم جامعي'}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-calendar"></i> تاريخ الإعارة
+                            </label>
+                            <input type="date" id="editBorrowDate" class="form-control" value="${borrow.borrowDate}">
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                                <i class="fas fa-calendar-check"></i> تاريخ الاستحقاق
+                            </label>
+                            <input type="date" id="editDueDate" class="form-control" value="${borrow.dueDate}">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-chalkboard-teacher"></i> الأستاذ المشرف
+                        </label>
+                        <input type="text" id="editBorrowProfessor" class="form-control" value="${borrow.professor || ''}">
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-check-circle"></i> الحالة
+                        </label>
+                        <select id="editBorrowStatus" class="form-control">
+                            <option value="نشطة" ${borrow.status === 'نشطة' ? 'selected' : ''}>نشطة</option>
+                            <option value="تم الإرجاع" ${borrow.status === 'تم الإرجاع' ? 'selected' : ''}>تم الإرجاع</option>
+                            <option value="ملغية" ${borrow.status === 'ملغية' ? 'selected' : ''}>ملغية</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-sticky-note"></i> ملاحظات
+                        </label>
+                        <textarea id="editBorrowNotes" class="textarea-control" rows="3">${borrow.notes || ''}</textarea>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="processEditBorrow(${borrow.id})" class="btn btn-success" style="flex: 1;">
+                            <i class="fas fa-save"></i> حفظ التغييرات
+                        </button>
+                        <button onclick="closeModal()" class="btn btn-danger" style="flex: 1;">
+                            <i class="fas fa-times"></i> إلغاء
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
+        function processEditBorrow(borrowId) {
+            const borrow = libraryData.borrow.find(b => b.id === borrowId);
+            if (!borrow) return;
+            
+            const oldBookId = borrow.bookId;
+            const newBookId = parseInt(document.getElementById('editBorrowBookId').value);
+            const newStudentId = parseInt(document.getElementById('editBorrowStudentId').value);
+            
+            if (oldBookId !== newBookId) {
+                const oldBook = libraryData.books.find(b => b.id === oldBookId);
+                if (oldBook) oldBook.status = 'متاح';
+                
+                const newBook = libraryData.books.find(b => b.id === newBookId);
+                if (newBook) newBook.status = 'مستعار';
+            }
+            
+            borrow.bookId = newBookId;
+            borrow.bookTitle = libraryData.books.find(b => b.id === newBookId)?.title || borrow.bookTitle;
+            borrow.studentId = newStudentId;
+            borrow.studentName = libraryData.students.find(s => s.id === newStudentId)?.name || borrow.studentName;
+            borrow.borrowDate = document.getElementById('editBorrowDate').value;
+            borrow.dueDate = document.getElementById('editDueDate').value;
+            borrow.professor = document.getElementById('editBorrowProfessor').value;
+            borrow.status = document.getElementById('editBorrowStatus').value;
+            borrow.notes = document.getElementById('editBorrowNotes').value || '';
+            
+            if (borrow.status === 'تم الإرجاع' && !borrow.returnDate) {
+                borrow.returnDate = new Date().toISOString().split('T')[0];
+                const book = libraryData.books.find(b => b.id === borrow.bookId);
+                if (book) book.status = 'متاح';
+            }
+            
+            saveData();
+            closeModal();
+            loadBorrow();
+            
+            showNotification('تم تحديث بيانات الإعارة بنساح', 'success');
+            logActivity('edit_borrow', `تعديل إعارة كتاب "${borrow.bookTitle}"`);
+        }
+
+        function returnBorrow(borrowId) {
+            const borrow = libraryData.borrow.find(b => b.id === borrowId);
+            if (!borrow) return;
+            
+            const book = libraryData.books.find(b => b.id === borrow.bookId);
+            const student = libraryData.students.find(s => s.id === borrow.studentId);
+            
+            if (book) book.status = 'متاح';
+            
+            if (student && student.borrowHistory) {
+                const historyItem = student.borrowHistory.find(h => h.bookId === borrow.bookId && !h.returnDate);
+                if (historyItem) {
+                    historyItem.returnDate = new Date().toISOString().split('T')[0];
+                }
+            }
+            
+            borrow.status = 'تم الإرجاع';
+            borrow.returnDate = new Date().toISOString().split('T')[0];
+            
+            saveData();
+            loadBorrow();
+            updateDashboard();
+            
+            showNotification('تم إرجاع الكتاب بنجاح', 'success');
+            logActivity('return_book', `إرجاع كتاب "${borrow.bookTitle}" من الطالب "${borrow.studentName}"`);
+        }
+
+        function extendBorrow(borrowId) {
+            const borrow = libraryData.borrow.find(b => b.id === borrowId);
+            if (!borrow) return;
+            
+            const currentDueDate = new Date(borrow.dueDate);
+            const newDueDate = new Date(currentDueDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+            borrow.dueDate = newDueDate.toISOString().split('T')[0];
+            
+            saveData();
+            loadBorrow();
+            
+            showNotification('تم تمديد الإعارة لمدة 7 أيام إضافية', 'success');
+            logActivity('extend_borrow', `تمديد إعارة كتاب "${borrow.bookTitle}" للطالب "${borrow.studentName}"`);
+        }
+
+        function deleteBorrow(borrowId) {
+            showConfirmModal(
+                'حذف الإعارة',
+                'هل أنت متأكد من حذف هذه الإعارة؟ لا يمكن التراجع عن هذه العملية.',
+                function(result) {
+                    if (result) {
+                        const borrowIndex = libraryData.borrow.findIndex(b => b.id === borrowId);
+                        if (borrowIndex !== -1) {
+                            const borrow = libraryData.borrow[borrowIndex];
+                            
+                            if (borrow.status === 'نشطة') {
+                                const book = libraryData.books.find(b => b.id === borrow.bookId);
+                                if (book) book.status = 'متاح';
+                            }
+                            
+                            libraryData.borrow.splice(borrowIndex, 1);
+                            saveData();
+                            loadBorrow();
+                            updateDashboard();
+                            
+                            showNotification('تم حذف الإعارة بنجاح', 'success');
+                            logActivity('delete_borrow', `حذف إعارة كتاب "${borrow.bookTitle}"`);
+                        }
+                    }
+                }
+            );
+        }
+
+        // ============================================
+        // معالجة رفع الصور
+        // ============================================
+        function handleImageUpload(input, previewId, containerId) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showNotification('الرجاء اختيار ملف صورة', 'error');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('حجم الصورة كبير جداً (الحد الأقصى 5MB)', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imageDataUrl = e.target.result;
+                
+                if (previewId && containerId) {
+                    const preview = document.getElementById(previewId);
+                    const container = document.getElementById(containerId);
+                    
+                    if (preview) {
+                        preview.src = imageDataUrl;
+                        container.style.display = 'block';
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ============================================
+        // وظائف البحث
+        // ============================================
+        function searchBooks() {
+            const searchTerm = document.getElementById('bookSearch').value.toLowerCase();
+            const booksGrid = document.getElementById('booksGrid');
+            
+            if (!searchTerm) {
+                loadBooks();
+                return;
+            }
+            
+            const filteredBooks = libraryData.books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) ||
+                (book.author && book.author.toLowerCase().includes(searchTerm)) ||
+                (book.category && book.category.toLowerCase().includes(searchTerm)) ||
+                (book.shelf && book.shelf.toLowerCase().includes(searchTerm)) ||
+                (book.notes && book.notes.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filteredBooks.length === 0) {
+                booksGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج للبحث</h3>
+                        <p>لم يتم العثور على كتب تطابق بحثك: "${searchTerm}"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            booksGrid.innerHTML = `
+                <div class="cards-grid">
+                    ${filteredBooks.map(book => `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">${book.title}</div>
+                                <span class="card-badge" style="background: ${book.status === 'متاح' ? 'var(--success)' : 'var(--accent)'}">
+                                    ${book.status}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="student-item">
+                                    <span class="info-label">المؤلف:</span>
+                                    <span class="info-value">${book.author || 'غير معروف'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">التصنيف:</span>
+                                    <span class="info-value">${book.category || 'عام'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">رقم الرف:</span>
+                                    <span class="info-value">${book.shelf || 'غير محدد'}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn-sm btn-primary" onclick="showEditBookModal(${book.id})">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                ${book.status === 'متاح' ? `
+                                    <button class="btn-sm btn-success" onclick="borrowBook(${book.id})">
+                                        <i class="fas fa-hand-holding"></i> إعارة
+                                    </button>
+                                ` : ''}
+                                <button class="btn-sm btn-danger" onclick="deleteBook(${book.id})">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function searchStudents() {
+            const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
+            const studentsGrid = document.getElementById('studentsGrid');
+            
+            if (!searchTerm) {
+                loadStudents();
+                return;
+            }
+            
+            const filteredStudents = libraryData.students.filter(student => 
+                student.name.toLowerCase().includes(searchTerm) ||
+                (student.studentId && student.studentId.toLowerCase().includes(searchTerm)) ||
+                (student.email && student.email.toLowerCase().includes(searchTerm)) ||
+                (student.phone && student.phone.includes(searchTerm)) ||
+                (student.department && student.department.toLowerCase().includes(searchTerm)) ||
+                (student.notes && student.notes.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filteredStudents.length === 0) {
+                studentsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج للبحث</h3>
+                        <p>لم يتم العثور على طلاب يطابقون بحثك: "${searchTerm}"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            studentsGrid.innerHTML = `
+                <div class="student-cards-grid">
+                    ${filteredStudents.map((student, index) => `
+                        <div class="student-card">
+                            <div class="student-header">
+                                ${student.avatar ? `
+                                    <img src="${student.avatar}" class="student-avatar" alt="${student.name}">
+                                ` : `
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=${libraryData.settings.primaryColor.slice(1)}&color=fff&size=70" class="student-avatar" alt="${student.name}">
+                                `}
+                                <div class="student-title">${student.name}</div>
+                                <div class="student-number">${index + 1}</div>
+                            </div>
+                            
+                            <div class="student-content">
+                                <div class="student-item">
+                                    <span class="info-label">الرقم الجامعي:</span>
+                                    <span class="info-value">${student.studentId || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">المستوى:</span>
+                                    <span class="info-value">${student.level || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">القسم:</span>
+                                    <span class="info-value">${student.department || 'القانون'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="student-history">
+                                <div>تاريخ التسجيل: ${student.joinDate || 'غير محدد'}</div>
+                                <span class="history-badge ${student.status === 'نشط' ? 'member-badge' : 'admin-badge'}">
+                                    ${student.status || 'نشط'}
+                                </span>
+                            </div>
+                            
+                            <div class="student-actions">
+                                <button class="btn-sm btn-primary" onclick="showEditStudentModal(${student.id})">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                <button class="btn-sm btn-success" onclick="showStudentDetails(${student.id})">
+                                    <i class="fas fa-eye"></i> تفاصيل
+                                </button>
+                                <button class="btn-sm btn-danger" onclick="deleteStudent(${student.id})">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function searchProfessors() {
+            const searchTerm = document.getElementById('professorSearch').value.toLowerCase();
+            const professorsGrid = document.getElementById('professorsGrid');
+            
+            if (!searchTerm) {
+                loadProfessors();
+                return;
+            }
+            
+            const filteredProfessors = libraryData.professors.filter(professor => 
+                professor.name.toLowerCase().includes(searchTerm) ||
+                (professor.rank && professor.rank.toLowerCase().includes(searchTerm)) ||
+                (professor.department && professor.department.toLowerCase().includes(searchTerm)) ||
+                (professor.specialization && professor.specialization.toLowerCase().includes(searchTerm)) ||
+                (professor.email && professor.email.toLowerCase().includes(searchTerm)) ||
+                (professor.notes && professor.notes.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filteredProfessors.length === 0) {
+                professorsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج للبحث</h3>
+                        <p>لم يتم العثور على أساتذة يطابقون بحثك: "${searchTerm}"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            professorsGrid.innerHTML = `
+                <div class="cards-grid">
+                    ${filteredProfessors.map(professor => `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">${professor.name}</div>
+                                <span class="card-badge">${professor.rank || 'أستاذ'}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="student-item">
+                                    <span class="info-label">التخصص:</span>
+                                    <span class="info-value">${professor.specialization || 'قانون'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">القسم:</span>
+                                    <span class="info-value">${professor.department || 'القانون'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">المكتب:</span>
+                                    <span class="info-value">${professor.office || 'غير محدد'}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn-sm btn-primary" onclick="showEditProfessorModal(${professor.id})">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                <button class="btn-sm btn-success" onclick="showProfessorDetails(${professor.id})">
+                                    <i class="fas fa-eye"></i> تفاصيل
+                                </button>
+                                <button class="btn-sm btn-danger" onclick="deleteProfessor(${professor.id})">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                return;
+            }
+            
+            const results = {
+                books: libraryData.books.filter(book => 
+                    book.title.toLowerCase().includes(searchTerm) ||
+                    (book.author && book.author.toLowerCase().includes(searchTerm))
+                ).slice(0, 3),
+                students: libraryData.students.filter(student => 
+                    student.name.toLowerCase().includes(searchTerm) ||
+                    (student.studentId && student.studentId.toLowerCase().includes(searchTerm))
+                ).slice(0, 3),
+                professors: libraryData.professors.filter(professor => 
+                    professor.name.toLowerCase().includes(searchTerm) ||
+                    (professor.rank && professor.rank.toLowerCase().includes(searchTerm))
+                ).slice(0, 3)
+            };
+            
+            const totalResults = results.books.length + results.students.length + results.professors.length;
+            
+            if (totalResults === 0) {
+                showNotification('لم يتم العثور على نتائج تطابق بحثك', 'info');
+                return;
+            }
+            
+            let resultHTML = '<div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius); margin-top: 20px; box-shadow: var(--shadow);">';
+            resultHTML += `<h3 style="margin-bottom: 15px; color: var(--primary);">نتائج البحث: "${searchTerm}"</h3>`;
+            
+            if (results.books.length > 0) {
+                resultHTML += `<h4 style="color: var(--secondary); margin-bottom: 10px;"><i class="fas fa-book"></i> الكتب (${results.books.length})</h4>`;
+                results.books.forEach(book => {
+                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                        <strong>${book.title}</strong> - ${book.author || 'غير معروف'}
+                        <button class="btn-sm btn-primary" onclick="showEditBookModal(${book.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
+                            <i class="fas fa-eye"></i> عرض
+                        </button>
+                    </div>`;
+                });
+            }
+            
+            if (results.students.length > 0) {
+                resultHTML += `<h4 style="color: var(--secondary); margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-user-graduate"></i> الطلاب (${results.students.length})</h4>`;
+                results.students.forEach(student => {
+                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                        <strong>${student.name}</strong> - ${student.studentId || 'بدون رقم جامعي'}
+                        <button class="btn-sm btn-primary" onclick="showEditStudentModal(${student.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
+                            <i class="fas fa-eye"></i> عرض
+                        </button>
+                    </div>`;
+                });
+            }
+            
+            if (results.professors.length > 0) {
+                resultHTML += `<h4 style="color: var(--secondary); margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-chalkboard-teacher"></i> الأساتذة (${results.professors.length})</h4>`;
+                results.professors.forEach(professor => {
+                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                        <strong>${professor.name}</strong> - ${professor.rank || 'أستاذ'}
+                        <button class="btn-sm btn-primary" onclick="showEditProfessorModal(${professor.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
+                            <i class="fas fa-eye"></i> عرض
+                        </button>
+                    </div>`;
+                });
+            }
+            
+            resultHTML += '</div>';
+            
+            const dashboard = document.getElementById('dashboard');
+            const existingResults = dashboard.querySelector('.search-results');
+            if (existingResults) {
+                existingResults.remove();
+            }
+            
+            const resultsDiv = document.createElement('div');
+            resultsDiv.className = 'search-results';
+            resultsDiv.innerHTML = resultHTML;
+            dashboard.querySelector('.quick-actions').before(resultsDiv);
+        }
+
+        // ============================================
+        // وظائف مساعدة للطلاب والأساتذة
+        // ============================================
+        function showStudentDetails(studentId) {
+            const student = libraryData.students.find(s => s.id === studentId);
+            if (!student) return;
+            
+            const studentBorrows = libraryData.borrow.filter(b => b.studentId === studentId);
+            
+            openModal(`تفاصيل الطالب: ${student.name}`, `
+                <div style="padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        ${student.avatar ? `
+                            <img src="${student.avatar}" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--secondary); margin-bottom: 15px;">
+                        ` : ''}
+                        <h3 style="color: var(--primary); margin-bottom: 5px;">${student.name}</h3>
+                        <p style="color: var(--text-light);">${student.studentId || 'بدون رقم جامعي'}</p>
+                    </div>
+                    
+                    <div style="background: var(--hover-bg); padding: 15px; border-radius: var(--radius); margin-bottom: 20px;">
+                        <h4 style="color: var(--secondary); margin-bottom: 10px;">المعلومات الأساسية</h4>
+                        <div class="student-item">
+                            <span class="info-label">المستوى:</span>
+                            <span class="info-value">${student.level || 'غير محدد'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">القسم:</span>
+                            <span class="info-value">${student.department || 'القانون'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">البريد الإلكتروني:</span>
+                            <span class="info-value">${student.email || 'غير محدد'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">رقم الهاتف:</span>
+                            <span class="info-value">${student.phone || 'غير محدد'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">تاريخ التسجيل:</span>
+                            <span class="info-value">${student.joinDate || 'غير محدد'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">الحالة:</span>
+                            <span class="info-value">${student.status || 'نشط'}</span>
+                        </div>
+                    </div>
+                    
+                    ${student.notes ? `
+                    <div style="background: rgba(255, 245, 157, 0.1); padding: 15px; border-radius: var(--radius); margin-bottom: 20px; border-right: 3px solid var(--warning);">
+                        <h4 style="color: var(--warning); margin-bottom: 10px;"><i class="fas fa-sticky-note"></i> الملاحظات</h4>
+                        <p>${student.notes}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div style="background: var(--hover-bg); padding: 15px; border-radius: var(--radius);">
+                        <h4 style="color: var(--secondary); margin-bottom: 10px;">سجل الإعارة (${studentBorrows.length})</h4>
+                        ${studentBorrows.length === 0 ? 
+                            '<p style="text-align: center; color: var(--text-light);">لا توجد إعارات سابقة</p>' :
+                            studentBorrows.map(borrow => `
+                                <div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                                    <strong>${borrow.bookTitle}</strong><br>
+                                    <small>${borrow.borrowDate} - ${borrow.dueDate}</small><br>
+                                    <span style="color: ${borrow.status === 'نشطة' ? 'var(--success)' : 'var(--secondary)'}">
+                                        ${borrow.status}
+                                    </span>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `);
+        }
+
+        function showProfessorDetails(professorId) {
+            const professor = libraryData.professors.find(p => p.id === professorId);
+            if (!professor) return;
+            
+            openModal(`تفاصيل الأستاذ: ${professor.name}`, `
+                <div style="padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        ${professor.avatar ? `
+                            <img src="${professor.avatar}" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--secondary); margin-bottom: 15px;">
+                        ` : ''}
+                        <h3 style="color: var(--primary); margin-bottom: 5px;">${professor.name}</h3>
+                        <p style="color: var(--text-light);">${professor.rank || 'أستاذ'}</p>
+                    </div>
+                    
+                    <div style="background: var(--hover-bg); padding: 15px; border-radius: var(--radius); margin-bottom: 20px;">
+                        <h4 style="color: var(--secondary); margin-bottom: 10px;">المعلومات الأساسية</h4>
+                        <div class="student-item">
+                            <span class="info-label">التخصص:</span>
+                            <span class="info-value">${professor.specialization || 'قانون'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">القسم:</span>
+                            <span class="info-value">${professor.department || 'القانون'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">البريد الإلكتروني:</span>
+                            <span class="info-value">${professor.email || 'غير محدد'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">رقم الهاتف:</span>
+                            <span class="info-value">${professor.phone || 'غير محدد'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">رقم المكتب:</span>
+                            <span class="info-value">${professor.office || 'غير محدد'}</span>
+                        </div>
+                        <div class="student-item">
+                            <span class="info-label">تاريخ التعيين:</span>
+                            <span class="info-value">${professor.joinDate || 'غير محدد'}</span>
+                        </div>
+                    </div>
+                    
+                    ${professor.notes ? `
+                    <div style="background: rgba(255, 245, 157, 0.1); padding: 15px; border-radius: var(--radius); margin-bottom: 20px; border-right: 3px solid var(--warning);">
+                        <h4 style="color: var(--warning); margin-bottom: 10px;"><i class="fas fa-sticky-note"></i> الملاحظات</h4>
+                        <p>${professor.notes}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `);
         }
 
         // ============================================
@@ -3610,6 +5509,123 @@
             saveSettings();
         }
 
+        // ============================================
+        // تصدير واستيراد Excel
+        // ============================================
+        function exportToExcel(type) {
+            let data = [];
+            let headers = [];
+            let filename = '';
+            
+            switch(type) {
+                case 'books':
+                    data = libraryData.books;
+                    headers = ['العنوان', 'المؤلف', 'التصنيف', 'سنة النشر', 'رقم الرف', 'الحالة', 'ملاحظات'];
+                    filename = `books_${new Date().toISOString().slice(0,10)}.csv`;
+                    break;
+                case 'students':
+                    data = libraryData.students;
+                    headers = ['الاسم', 'الرقم الجامعي', 'المستوى', 'القسم', 'البريد الإلكتروني', 'رقم الهاتف', 'تاريخ التسجيل', 'الحالة', 'ملاحظات'];
+                    filename = `students_${new Date().toISOString().slice(0,10)}.csv`;
+                    break;
+                case 'professors':
+                    data = libraryData.professors;
+                    headers = ['الاسم', 'الرتبة', 'القسم', 'التخصص', 'البريد الإلكتروني', 'رقم الهاتف', 'المكتب', 'تاريخ التعيين', 'ملاحظات'];
+                    filename = `professors_${new Date().toISOString().slice(0,10)}.csv`;
+                    break;
+            }
+            
+            if (data.length === 0) {
+                showNotification(`لا توجد بيانات لتصديرها من ${type}`, 'error');
+                return;
+            }
+            
+            let csvContent = headers.join(',') + '\n';
+            
+            data.forEach(item => {
+                let row = [];
+                switch(type) {
+                    case 'books':
+                        row = [
+                            `"${item.title}"`,
+                            `"${item.author || ''}"`,
+                            `"${item.category || ''}"`,
+                            `"${item.year || ''}"`,
+                            `"${item.shelf || ''}"`,
+                            `"${item.status || ''}"`,
+                            `"${item.notes || ''}"`
+                        ];
+                        break;
+                    case 'students':
+                        row = [
+                            `"${item.name}"`,
+                            `"${item.studentId || ''}"`,
+                            `"${item.level || ''}"`,
+                            `"${item.department || ''}"`,
+                            `"${item.email || ''}"`,
+                            `"${item.phone || ''}"`,
+                            `"${item.joinDate || ''}"`,
+                            `"${item.status || ''}"`,
+                            `"${item.notes || ''}"`
+                        ];
+                        break;
+                    case 'professors':
+                        row = [
+                            `"${item.name}"`,
+                            `"${item.rank || ''}"`,
+                            `"${item.department || ''}"`,
+                            `"${item.specialization || ''}"`,
+                            `"${item.email || ''}"`,
+                            `"${item.phone || ''}"`,
+                            `"${item.office || ''}"`,
+                            `"${item.joinDate || ''}"`,
+                            `"${item.notes || ''}"`
+                        ];
+                        break;
+                }
+                csvContent += row.join(',') + '\n';
+            });
+            
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (navigator.msSaveBlob) {
+                navigator.msSaveBlob(blob, filename);
+            } else {
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            showNotification(`تم تصدير البيانات إلى ${filename}`, 'success');
+            logActivity('export_excel', `تصدير ${type} إلى Excel`);
+        }
+
+        function importFromExcel() {
+            showNotification('ميزة استيراد Excel قيد التطوير', 'info');
+        }
+
+        function downloadExcelTemplate() {
+            const template = `العنوان,المؤلف,التصنيف,سنة النشر,رقم الرف,الحالة,ملاحظات
+"مبادئ القانون","أحمد محمد","قانون",2023,"SHELF-101","متاح","كتاب رائع للمبتدئين"
+"القانون الدستوري","سارة علي","قانون دستوري",2022,"SHELF-102","متاح",""
+"أصول المحاكمات","محمد خالد","قانون إجرائي",2021,"SHELF-103","مستعار","يحتاج إلى تجديد"`;
+
+            const blob = new Blob(['\ufeff' + template], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'template_books.csv';
+            link.click();
+            
+            showNotification('تم تحميل قالب Excel', 'success');
+        }
+
+        // ============================================
+        // تصدير واستيراد البيانات العامة
+        // ============================================
         function exportAllData() {
             const exportData = {
                 libraryData: libraryData,
@@ -3631,6 +5647,168 @@
             
             showNotification('تم تصدير جميع البيانات بنجاح', 'success');
             logActivity('export', 'تصدير جميع بيانات النظام');
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        if (!importedData.libraryData) {
+                            showNotification('ملف غير صالح', 'error');
+                            return;
+                        }
+                        
+                        showConfirmModal(
+                            'استيراد البيانات',
+                            'هل أنت متأكد من استيراد البيانات؟ سيتم استبدال جميع البيانات الحالية.',
+                            function(result) {
+                                if (result) {
+                                    libraryData = importedData.libraryData;
+                                    saveData();
+                                    updateDashboard();
+                                    loadTabContent(currentTab);
+                                    
+                                    showNotification('تم استيراد البيانات بنجاح', 'success');
+                                    logActivity('import', 'استيراد جميع بيانات النظام');
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        showNotification('خطأ في قراءة الملف', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function importStudentData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        let students = [];
+                        
+                        if (Array.isArray(importedData)) {
+                            students = importedData;
+                        } else if (importedData.students) {
+                            students = importedData.students;
+                        } else if (importedData.libraryData && importedData.libraryData.students) {
+                            students = importedData.libraryData.students;
+                        }
+                        
+                        if (students.length === 0) {
+                            showNotification('لا توجد بيانات طلاب في الملف', 'error');
+                            return;
+                        }
+                        
+                        showConfirmModal(
+                            'استيراد بيانات الطلاب',
+                            `سيتم إضافة ${students.length} طالب جديد. هل تريد المتابعة؟`,
+                            function(result) {
+                                if (result) {
+                                    students.forEach(student => {
+                                        student.id = student.id || Date.now() + Math.random();
+                                        libraryData.students.push(student);
+                                    });
+                                    
+                                    saveData();
+                                    loadStudents();
+                                    updateDashboard();
+                                    
+                                    showNotification(`تم استيراد ${students.length} طالب بنجاح`, 'success');
+                                    logActivity('import_students', `استيراد ${students.length} طالب`);
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        showNotification('خطأ في قراءة الملف', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function importProfessorData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        let professors = [];
+                        
+                        if (Array.isArray(importedData)) {
+                            professors = importedData;
+                        } else if (importedData.professors) {
+                            professors = importedData.professors;
+                        } else if (importedData.libraryData && importedData.libraryData.professors) {
+                            professors = importedData.libraryData.professors;
+                        }
+                        
+                        if (professors.length === 0) {
+                            showNotification('لا توجد بيانات أساتذة في الملف', 'error');
+                            return;
+                        }
+                        
+                        showConfirmModal(
+                            'استيراد بيانات الأساتذة',
+                            `سيتم إضافة ${professors.length} أستاذ جديد. هل تريد المتابعة؟`,
+                            function(result) {
+                                if (result) {
+                                    professors.forEach(professor => {
+                                        professor.id = professor.id || Date.now() + Math.random();
+                                        libraryData.professors.push(professor);
+                                    });
+                                    
+                                    saveData();
+                                    loadProfessors();
+                                    updateDashboard();
+                                    
+                                    showNotification(`تم استيراد ${professors.length} أستاذ بنجاح`, 'success');
+                                    logActivity('import_professors', `استيراد ${professors.length} أستاذ`);
+                                }
+                            }
+                        );
+                    } catch (error) {
+                        showNotification('خطأ في قراءة الملف', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            input.click();
+        }
+
+        function importAllData() {
+            importData();
         }
 
         function resetAllData() {
@@ -3678,6 +5856,227 @@
             
             showNotification('تم مسح ذاكرة التخزين المؤقت', 'success');
             logActivity('clear_cache', 'مسح ذاكرة التخزين المؤقت');
+        }
+
+        // ============================================
+        // وظائف إضافية
+        // ============================================
+        function newBorrow() {
+            showBorrowModal();
+        }
+
+        function returnBook() {
+            const activeBorrows = libraryData.borrow.filter(b => b.status === 'نشطة');
+            
+            if (activeBorrows.length === 0) {
+                showNotification('لا توجد إعارات نشطة', 'info');
+                return;
+            }
+            
+            openModal('إرجاع كتاب', `
+                <div style="margin: 20px 0;">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
+                            <i class="fas fa-hand-holding"></i> اختيار الإعارة
+                        </label>
+                        <select id="returnBorrowId" class="form-control">
+                            <option value="">اختر الإعارة</option>
+                            ${activeBorrows.map(borrow => `
+                                <option value="${borrow.id}">${borrow.bookTitle} - ${borrow.studentName}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <button onclick="processReturnBook()" class="btn btn-success" style="width: 100%;">
+                        <i class="fas fa-undo"></i> إرجاع الكتاب
+                    </button>
+                </div>
+            `);
+        }
+
+        function processReturnBook() {
+            const borrowId = parseInt(document.getElementById('returnBorrowId').value);
+            if (!borrowId) {
+                showNotification('الرجاء اختيار إعارة', 'error');
+                return;
+            }
+            
+            returnBorrow(borrowId);
+            closeModal();
+        }
+
+        function showLateBooks() {
+            const today = new Date();
+            const lateBorrows = libraryData.borrow.filter(b => {
+                if (b.status !== 'نشطة') return false;
+                const dueDate = new Date(b.dueDate);
+                return today > dueDate;
+            });
+            
+            if (lateBorrows.length === 0) {
+                showNotification('لا توجد إعارات متأخرة', 'info');
+                return;
+            }
+            
+            openModal('الإعارات المتأخرة', `
+                <div style="padding: 20px;">
+                    <h3 style="color: var(--accent); margin-bottom: 20px;"><i class="fas fa-exclamation-triangle"></i> الإعارات المتأخرة (${lateBorrows.length})</h3>
+                    
+                    <div style="max-height: 400px; overflow-y: auto;">
+                        ${lateBorrows.map(borrow => {
+                            const dueDate = new Date(borrow.dueDate);
+                            const daysLate = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+                            
+                            return `
+                                <div style="background: rgba(244, 67, 54, 0.1); padding: 15px; border-radius: var(--radius); margin-bottom: 15px; border-right: 3px solid var(--accent);">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                        <strong>${borrow.bookTitle}</strong>
+                                        <span style="background: var(--accent); color: white; padding: 3px 8px; border-radius: 15px; font-size: 12px;">
+                                            ${daysLate} يوم
+                                        </span>
+                                    </div>
+                                    <div style="color: var(--text-light); font-size: 14px;">
+                                        الطالب: ${borrow.studentName}<br>
+                                        تاريخ الاستحقاق: ${borrow.dueDate}<br>
+                                        المشرف: ${borrow.professor || 'غير محدد'}
+                                    </div>
+                                    <button onclick="returnBorrow(${borrow.id}); closeModal();" class="btn-sm btn-success" style="margin-top: 10px; width: 100%;">
+                                        <i class="fas fa-undo"></i> إرجاع
+                                    </button>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `);
+        }
+
+        function viewBorrowStatistics() {
+            const today = new Date();
+            const activeBorrows = libraryData.borrow.filter(b => b.status === 'نشطة');
+            const completedBorrows = libraryData.borrow.filter(b => b.status === 'تم الإرجاع');
+            const lateBorrows = activeBorrows.filter(b => {
+                const dueDate = new Date(b.dueDate);
+                return today > dueDate;
+            });
+            
+            openModal('إحصائيات الإعارة', `
+                <div style="padding: 20px;">
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;">
+                        <div style="background: var(--secondary); color: white; padding: 20px; border-radius: var(--radius); text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold;">${activeBorrows.length}</div>
+                            <div>إعارات نشطة</div>
+                        </div>
+                        <div style="background: var(--accent); color: white; padding: 20px; border-radius: var(--radius); text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold;">${lateBorrows.length}</div>
+                            <div>إعارات متأخرة</div>
+                        </div>
+                        <div style="background: var(--success); color: white; padding: 20px; border-radius: var(--radius); text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold;">${completedBorrows.length}</div>
+                            <div>إعارات مكتملة</div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="color: var(--primary); margin-bottom: 15px;">أكثر الكتب إعارة</h4>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        ${(() => {
+                            const bookBorrowCount = {};
+                            libraryData.books.forEach(book => {
+                                bookBorrowCount[book.id] = book.borrowCount || 0;
+                            });
+                            
+                            const sortedBooks = [...libraryData.books].sort((a, b) => (b.borrowCount || 0) - (a.borrowCount || 0)).slice(0, 10);
+                            
+                            return sortedBooks.map((book, index) => `
+                                <div style="padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>${index + 1}. ${book.title}</strong><br>
+                                        <small style="color: var(--text-light);">${book.author || 'غير معروف'}</small>
+                                    </div>
+                                    <span style="background: var(--primary-light); color: white; padding: 5px 10px; border-radius: 15px; font-size: 14px;">
+                                        ${book.borrowCount || 0} مرة
+                                    </span>
+                                </div>
+                            `).join('');
+                        })()}
+                    </div>
+                </div>
+            `);
+        }
+
+        function printSection(section) {
+            let printContent = '';
+            let title = '';
+            
+            switch(section) {
+                case 'books':
+                    title = 'قائمة الكتب - مركز أورنمو القانوني';
+                    printContent = generateBooksReport();
+                    break;
+                case 'students':
+                    title = 'قائمة الطلاب - مركز أورنمو القانوني';
+                    printContent = generateStudentsReport();
+                    break;
+                case 'professors':
+                    title = 'قائمة الأساتذة - مركز أورنمو القانوني';
+                    printContent = generateProfessorsReport();
+                    break;
+                case 'borrow':
+                    title = 'قائمة الإعارات - مركز أورنمو القانوني';
+                    printContent = generateBorrowReport();
+                    break;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${title}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; direction: rtl; }
+                        h1 { color: #1a237e; text-align: center; border-bottom: 3px solid #1a237e; padding-bottom: 20px; }
+                        .header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                        .footer { margin-top: 50px; text-align: center; color: #666; border-top: 1px solid #ddd; padding-top: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th { background: #1a237e; color: white; padding: 12px; text-align: right; border: 1px solid #ddd; }
+                        td { padding: 10px; border: 1px solid #ddd; text-align: right; }
+                        tr:nth-child(even) { background: #f5f5f5; }
+                        @media print {
+                            body { margin: 20px; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>${title}</h1>
+                        <div>
+                            <div>التاريخ: ${new Date().toLocaleDateString('ar-SA')}</div>
+                            <div>المستخدم: ${currentUser.name}</div>
+                        </div>
+                    </div>
+                    
+                    ${printContent}
+                    
+                    <div class="footer">
+                        <p>مركز أورنمو القانوني - المكتبة القانونية</p>
+                        <p>جميع الحقوق محفوظة © ${new Date().getFullYear()}</p>
+                    </div>
+                    
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        function generateReport(type) {
+            generateDetailedReport(type);
         }
 
         // ============================================
