@@ -476,6 +476,7 @@
             font-weight: 600;
             min-width: 120px;
             margin-left: 10px;
+            text-align: left;
         }
         
         @media (max-width: 480px) {
@@ -486,9 +487,10 @@
         
         .info-value {
             color: var(--text);
-            text-align: left;
+            text-align: right;
             flex: 1;
             word-break: break-word;
+            direction: rtl;
         }
         
         .student-history {
@@ -900,8 +902,8 @@
         }
         
         .settings-content {
-    width: 95% !important;
-    margin: 10px auto !important;
+            width: 95% !important;
+            margin: 10px auto !important;
             background: var(--card-bg);
             border-radius: var(--radius);
             width: 90%;
@@ -1359,107 +1361,70 @@
             }
         }
         
-        /* تصميم الهواتف */
+        /* جعل عناصر التفاصيل متساوية ومتناسقة */
+        .details-container {
+            background: var(--hover-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+        
+        .detail-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+            border-color: var(--secondary);
+        }
+        
+        .detail-label {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+            min-width: 120px;
+            text-align: right;
+        }
+        
+        .detail-value {
+            color: var(--text);
+            font-weight: 500;
+            text-align: left;
+            flex: 1;
+            direction: rtl;
+            word-break: break-word;
+        }
+        
         @media (max-width: 768px) {
-            .student-item {
+            .detail-item {
                 flex-direction: column;
                 align-items: flex-start;
-                padding-right: 0;
+                gap: 5px;
             }
             
-            .student-item::before {
-                display: none;
-            }
-            
-            .info-label, .info-value {
+            .detail-label {
+                min-width: auto;
                 text-align: right;
                 width: 100%;
             }
             
-            .info-label {
-                margin-bottom: 5px;
-                margin-left: 0;
-                color: var(--primary);
-                font-size: 0.9rem;
-            }
-            
-            .card-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .card-badge {
-                align-self: flex-start;
-            }
-            
-            .student-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .student-number {
-                align-self: flex-start;
-            }
-            
-            .settings-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .settings-control {
-                min-width: 100%;
+            .detail-value {
+                text-align: right;
                 width: 100%;
-            }
-            
-            .color-picker-container {
-                width: 100%;
-                justify-content: space-between;
-            }
-        }
-        
-        /* تحسينات للأجهزة الصغيرة جداً */
-        @media (max-width: 360px) {
-            .header-title h1 {
-                font-size: 1.1rem;
-            }
-            
-            .user-info {
-                font-size: 0.9rem;
-            }
-            
-            .tab {
-                padding: 12px 15px;
-                font-size: 13px;
-            }
-            
-            .stat-number {
-                font-size: 1.8rem;
-            }
-            
-            .quick-btn {
-                padding: 15px;
-                min-height: 100px;
-            }
-            
-            .quick-btn i {
-                font-size: 1.8rem;
-            }
-            
-            .quick-btn span {
-                font-size: 0.9rem;
-            }
-        }
-        
-        /* دعم iOS */
-        @supports (-webkit-touch-callout: none) {
-            .form-control,
-            .textarea-control,
-            .search-input {
-                font-size: 16px; /* منع التكبير في iOS */
-            }
-            
-            .content {
-                padding-bottom: calc(20px + var(--safe-bottom));
             }
         }
         
@@ -1479,6 +1444,10 @@
             
             .quick-actions {
                 grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            }
+            
+            .details-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
@@ -1502,7 +1471,7 @@
                 padding: 10px 15px;
             }
         }
-    
+        
         /* تحسينات إضافية للتجاوب مع جميع الشاشات */
         @media (max-width: 600px) {
             .header { padding: 10px; }
@@ -1515,11 +1484,11 @@
             .quick-actions { grid-template-columns: 1fr; }
             .modal-content { width: 98% !important; padding: 15px !important; }
             .form-control, .btn { font-size: 14px; padding: 12px; }
+            .details-grid { grid-template-columns: 1fr; }
         }
         
-        /* تحسين شكل القوائم المنسدلة في نافذة الإعارة */
-        #borrowBookId, #borrowStudentId {
-            min-height: 150px;
+        /* تحسين شكل القوائم المنسدلة */
+        #borrowBookId, #borrowStudentId, select {
             cursor: pointer;
         }
         
@@ -1530,13 +1499,64 @@
             word-wrap: break-word;
         }
 
-    
-        .modal-content, .card, .student-card { animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .search-wrapper { position: relative; margin-bottom: 10px; }
-        .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; display: none; padding: 5px; z-index: 5; }
-        .search-wrapper input:not(:placeholder-shown) + .clear-search { display: block; }
-</style>
+        /* تحسينات للرسوم المتحركة */
+        .modal-content, .card, .student-card { 
+            animation: slideUp 0.4s ease-out; 
+        }
+        
+        @keyframes slideUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        /* تحسينات محسنة للبحث */
+        .search-wrapper { 
+            position: relative; 
+            margin-bottom: 10px; 
+        }
+        
+        .clear-search { 
+            position: absolute; 
+            left: 10px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            cursor: pointer; 
+            color: #999; 
+            display: none; 
+            padding: 5px; 
+            z-index: 5; 
+            background: transparent;
+            border: none;
+            font-size: 16px;
+        }
+        
+        .search-wrapper input:not(:placeholder-shown) + .clear-search { 
+            display: block; 
+        }
+        
+        /* تحسينات للأجهزة الصغيرة جداً */
+        @media (max-width: 360px) {
+            .header-title h1 { font-size: 1rem; }
+            .user-info { font-size: 0.8rem; }
+            .tab { padding: 10px 8px; font-size: 12px; }
+            .quick-btn { padding: 15px 10px; min-height: 90px; }
+            .quick-btn i { font-size: 1.5rem; }
+            .btn-sm { padding: 6px 10px; font-size: 12px; }
+        }
+        
+        /* دعم iOS */
+        @supports (-webkit-touch-callout: none) {
+            .form-control,
+            .textarea-control,
+            .search-input {
+                font-size: 16px;
+            }
+            
+            .content {
+                padding-bottom: calc(20px + var(--safe-bottom));
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- شاشة التحميل -->
@@ -1643,7 +1663,6 @@
             </button>
         </form>
         
-        <!-- إضافة هذا القسم الجديد بعد نموذج الدخول -->
         <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border);">
             <p style="color: var(--text-light); margin-bottom: 15px;">خيارات إضافية:</p>
             <div class="import-buttons">
@@ -1745,9 +1764,7 @@
                     </div>
                 </div>
                 
-                <div class="stats-grid" id="statsGrid">
-                    <!-- سيتم ملؤها ديناميكياً -->
-                </div>
+                <div class="stats-grid" id="statsGrid"></div>
                 
                 <div class="search-box">
                     <input type="text" class="search-input" id="searchInput" 
@@ -1802,17 +1819,7 @@
                            placeholder="🔍 ابحث في الكتب..." oninput="searchBooks()">
                 </div>
                 
-                <!-- حالة فارغة للبداية -->
-                <div id="booksGrid">
-                    <div class="empty-state" id="booksEmptyState">
-                        <i class="fas fa-book"></i>
-                        <h3>لا توجد كتب في المكتبة</h3>
-                        <p>لم تتم إضافة أي كتب بعد. يمكنك البدء بإضافة كتب جديدة باستخدام الزر أدناه.</p>
-                        <button class="btn btn-success" onclick="showAddBookModal()" style="margin-top: 20px;">
-                            <i class="fas fa-plus"></i> إضافة أول كتاب
-                        </button>
-                    </div>
-                </div>
+                <div id="booksGrid"></div>
             </div>
 
             <!-- قسم الطلاب -->
@@ -1834,17 +1841,7 @@
                            placeholder="🔍 ابحث في الطلاب..." oninput="searchStudents()">
                 </div>
                 
-                <!-- حالة فارغة للبداية -->
-                <div id="studentsGrid">
-                    <div class="empty-state" id="studentsEmptyState">
-                        <i class="fas fa-user-graduate"></i>
-                        <h3>لا توجد طلاب مسجلين</h3>
-                        <p>لم تتم إضافة أي طلاب بعد. يمكنك البدء بإضافة طلاب جدد باستخدام الزر أدناه.</p>
-                        <button class="btn btn-success" onclick="showAddStudentModal()" style="margin-top: 20px;">
-                            <i class="fas fa-plus"></i> إضافة أول طالب
-                        </button>
-                    </div>
-                </div>
+                <div id="studentsGrid"></div>
             </div>
 
             <!-- قسم الإعارة -->
@@ -1880,17 +1877,7 @@
                     </div>
                 </div>
                 
-                <!-- حالة فارغة للبداية -->
-                <div id="borrowGrid">
-                    <div class="empty-state" id="borrowEmptyState">
-                        <i class="fas fa-hand-holding"></i>
-                        <h3>لا توجد إعارات حالية</h3>
-                        <p>لم تتم إضافة أي إعارات بعد. يمكنك البدء بعملية إعارة جديدة باستخدام الزر أدناه.</p>
-                        <button class="btn btn-success" onclick="showBorrowModal()" style="margin-top: 20px;">
-                            <i class="fas fa-plus"></i> إضافة أول إعارة
-                        </button>
-                    </div>
-                </div>
+                <div id="borrowGrid"></div>
             </div>
 
             <!-- قسم الأساتذة -->
@@ -1912,20 +1899,10 @@
                            placeholder="🔍 ابحث في الأساتذة..." oninput="searchProfessors()">
                 </div>
                 
-                <!-- حالة فارغة للبداية -->
-                <div id="professorsGrid">
-                    <div class="empty-state" id="professorsEmptyState">
-                        <i class="fas fa-chalkboard-teacher"></i>
-                        <h3>لا توجد أساتذة مسجلين</h3>
-                        <p>لم تتم إضافة أي أساتذة بعد. يمكنك البدء بإضافة أساتذة جدد باستخدام الزر أدناه.</p>
-                        <button class="btn btn-success" onclick="showAddProfessorModal()" style="margin-top: 20px;">
-                            <i class="fas fa-plus"></i> إضافة أول أستاذ
-                        </button>
-                    </div>
-                </div>
+                <div id="professorsGrid"></div>
             </div>
 
-            <!-- قسم التقارير - تم التعديل لإضافة تقارير مفصلة -->
+            <!-- قسم التقارير -->
             <div class="tab-content" id="reports">
                 <h2><i class="fas fa-chart-bar"></i> التقارير والإحصائيات</h2>
                 
@@ -1956,10 +1933,7 @@
                     </div>
                 </div>
                 
-                <!-- التقارير التفصيلية -->
-                <div id="detailedReports">
-                    <!-- سيتم ملؤها ديناميكياً -->
-                </div>
+                <div id="detailedReports"></div>
             </div>
 
             <!-- قسم إعدادات المطور -->
@@ -2106,7 +2080,7 @@
                     <h3><i class="fas fa-info-circle"></i> معلومات النظام</h3>
                     <div class="settings-item">
                         <label>إصدار النظام</label>
-                        <span>2.4.0</span>
+                        <span>2.5.0</span>
                     </div>
                     <div class="settings-item">
                         <label>تاريخ الإنشاء</label>
@@ -2164,7 +2138,7 @@
     <!-- منطقة الطباعة -->
     <div class="print-zone" id="printZone"></div>
 
-    <!-- المودالات المختلفة -->
+    <!-- المودال الرئيسي -->
     <div id="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; padding: 20px;">
         <div style="background: white; border-radius: 15px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f8f9fa;">
@@ -2172,9 +2146,7 @@
                 <button onclick="closeModal()" style="background: none; border: none; font-size: 24px; color: var(--accent); cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">×</button>
             </div>
             
-            <div id="modalContent" style="line-height: 1.6;">
-                <!-- سيتم ملؤها ديناميكياً -->
-            </div>
+            <div id="modalContent" style="line-height: 1.6;"></div>
         </div>
     </div>
 
@@ -2309,12 +2281,17 @@
         let confirmCallback = null;
         let imageDataUrl = null;
         let retrievedData = null;
+        let paginationState = {
+            currentPage: 1,
+            itemsPerPage: 10,
+            totalPages: 1
+        };
 
-        // بيانات المستخدمين
+        // بيانات المستخدمين مع تحسين الأمان
         const users = {
             'admin': {
                 name: 'مدير النظام',
-                password: 'admin123',
+                password: 'admin123', // في تطبيق حقيقي، يجب استخدام hashing
                 role: 'admin',
                 permissions: ['all']
             },
@@ -3182,41 +3159,7 @@
                             body { margin: 20px; }
                             .no-print { display: none; }
                         }
-                    
-        /* تحسينات إضافية للتجاوب مع جميع الشاشات */
-        @media (max-width: 600px) {
-            .header { padding: 10px; }
-            .header-title h1 { font-size: 1.1rem; }
-            .user-info { justify-content: center; width: 100%; }
-            .tab { padding: 12px 10px; font-size: 13px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .stat-card { padding: 15px 10px; }
-            .stat-number { font-size: 1.5rem; }
-            .quick-actions { grid-template-columns: 1fr; }
-            .modal-content { width: 98% !important; padding: 15px !important; }
-            .form-control, .btn { font-size: 14px; padding: 12px; }
-        }
-        
-        /* تحسين شكل القوائم المنسدلة في نافذة الإعارة */
-        #borrowBookId, #borrowStudentId {
-            min-height: 150px;
-            cursor: pointer;
-        }
-        
-        #borrowBookId option, #borrowStudentId option {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            white-space: normal;
-            word-wrap: break-word;
-        }
-
-    
-        .modal-content, .card, .student-card { animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .search-wrapper { position: relative; margin-bottom: 10px; }
-        .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; display: none; padding: 5px; z-index: 5; }
-        .search-wrapper input:not(:placeholder-shown) + .clear-search { display: block; }
-</style>
+                    </style>
                 </head>
                 <body>
                     <div class="header">
@@ -3410,6 +3353,54 @@
             setTimeout(() => {
                 notification.style.display = 'none';
             }, libraryData.settings.notificationDuration * 1000);
+            
+            // إضافة صوت الإشعار
+            if (libraryData.settings.notificationSound !== 'none') {
+                playNotificationSound(libraryData.settings.notificationSound);
+            }
+        }
+
+        function playNotificationSound(sound) {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                if (sound === 'beep') {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.1);
+                    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                } else if (sound === 'chime') {
+                    // نغمة جرس بسيطة
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.1);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 1.5);
+                }
+            } catch (error) {
+                console.log('لا يمكن تشغيل الصوت:', error);
+            }
         }
 
         function saveData() {
@@ -4723,7 +4714,10 @@
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
                             <i class="fas fa-book"></i> اختيار الكتاب
                         </label>
-                        <input type="text" id="searchBook" class="form-control" placeholder="ابحث عن كتاب..." onkeyup="filterBorrowOptions('borrowBookId', this.value)" style="padding-left: 35px;"><i class="fas fa-times-circle clear-search" onclick="clearSearch('searchBook', 'borrowBookId')"></i>
+                        <div class="search-wrapper">
+                            <input type="text" id="searchBook" class="form-control" placeholder="ابحث عن كتاب..." onkeyup="filterBorrowOptions('borrowBookId', this.value)">
+                            <button class="clear-search" onclick="clearSearch('searchBook', 'borrowBookId')">×</button>
+                        </div>
                         <select id="borrowBookId" class="form-control" required size="5">
                             <option value="">اختر الكتاب</option>
                             ${availableBooks.map(book => `
@@ -4736,7 +4730,10 @@
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
                             <i class="fas fa-user-graduate"></i> اختيار الطالب
                         </label>
-                        <input type="text" id="searchStudent" class="form-control" placeholder="ابحث عن طالب..." onkeyup="filterBorrowOptions('borrowStudentId', this.value)" style="padding-left: 35px;"><i class="fas fa-times-circle clear-search" onclick="clearSearch('searchStudent', 'borrowStudentId')"></i>
+                        <div class="search-wrapper">
+                            <input type="text" id="searchStudent" class="form-control" placeholder="ابحث عن طالب..." onkeyup="filterBorrowOptions('borrowStudentId', this.value)">
+                            <button class="clear-search" onclick="clearSearch('searchStudent', 'borrowStudentId')">×</button>
+                        </div>
                         <select id="borrowStudentId" class="form-control" required size="5">
                             <option value="">اختر الطالب</option>
                             ${availableStudents.map(student => `
@@ -4791,8 +4788,6 @@
             `);
         }
 
-        
-        
         function clearSearch(inputId, selectId) {
             const input = document.getElementById(inputId);
             input.value = '';
@@ -5100,313 +5095,7 @@
         }
 
         // ============================================
-        // وظائف البحث
-        // ============================================
-        function searchBooks() {
-            const searchTerm = document.getElementById('bookSearch').value.toLowerCase();
-            const booksGrid = document.getElementById('booksGrid');
-            
-            if (!searchTerm) {
-                loadBooks();
-                return;
-            }
-            
-            const filteredBooks = libraryData.books.filter(book => 
-                book.title.toLowerCase().includes(searchTerm) ||
-                (book.author && book.author.toLowerCase().includes(searchTerm)) ||
-                (book.category && book.category.toLowerCase().includes(searchTerm)) ||
-                (book.shelf && book.shelf.toLowerCase().includes(searchTerm)) ||
-                (book.notes && book.notes.toLowerCase().includes(searchTerm))
-            );
-            
-            if (filteredBooks.length === 0) {
-                booksGrid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <h3>لا توجد نتائج للبحث</h3>
-                        <p>لم يتم العثور على كتب تطابق بحثك: "${searchTerm}"</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            booksGrid.innerHTML = `
-                <div class="cards-grid">
-                    ${filteredBooks.map(book => `
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">${book.title}</div>
-                                <span class="card-badge" style="background: ${book.status === 'متاح' ? 'var(--success)' : 'var(--accent)'}">
-                                    ${book.status}
-                                </span>
-                            </div>
-                            <div class="card-body">
-                                <div class="student-item">
-                                    <span class="info-label">المؤلف:</span>
-                                    <span class="info-value">${book.author || 'غير معروف'}</span>
-                                </div>
-                                <div class="student-item">
-                                    <span class="info-label">التصنيف:</span>
-                                    <span class="info-value">${book.category || 'عام'}</span>
-                                </div>
-                                <div class="student-item">
-                                    <span class="info-label">رقم الرف:</span>
-                                    <span class="info-value">${book.shelf || 'غير محدد'}</span>
-                                </div>
-                            </div>
-                            <div class="card-actions">
-                                <button class="btn-sm btn-primary" onclick="showEditBookModal(${book.id})">
-                                    <i class="fas fa-edit"></i> تعديل
-                                </button>
-                                ${book.status === 'متاح' ? `
-                                    <button class="btn-sm btn-success" onclick="borrowBook(${book.id})">
-                                        <i class="fas fa-hand-holding"></i> إعارة
-                                    </button>
-                                ` : ''}
-                                <button class="btn-sm btn-danger" onclick="deleteBook(${book.id})">
-                                    <i class="fas fa-trash"></i> حذف
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function searchStudents() {
-            const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
-            const studentsGrid = document.getElementById('studentsGrid');
-            
-            if (!searchTerm) {
-                loadStudents();
-                return;
-            }
-            
-            const filteredStudents = libraryData.students.filter(student => 
-                student.name.toLowerCase().includes(searchTerm) ||
-                (student.studentId && student.studentId.toLowerCase().includes(searchTerm)) ||
-                (student.email && student.email.toLowerCase().includes(searchTerm)) ||
-                (student.phone && student.phone.includes(searchTerm)) ||
-                (student.department && student.department.toLowerCase().includes(searchTerm)) ||
-                (student.notes && student.notes.toLowerCase().includes(searchTerm))
-            );
-            
-            if (filteredStudents.length === 0) {
-                studentsGrid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <h3>لا توجد نتائج للبحث</h3>
-                        <p>لم يتم العثور على طلاب يطابقون بحثك: "${searchTerm}"</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            studentsGrid.innerHTML = `
-                <div class="student-cards-grid">
-                    ${filteredStudents.map((student, index) => `
-                        <div class="student-card">
-                            <div class="student-header">
-                                ${student.avatar ? `
-                                    <img src="${student.avatar}" class="student-avatar" alt="${student.name}">
-                                ` : `
-                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=${libraryData.settings.primaryColor.slice(1)}&color=fff&size=70" class="student-avatar" alt="${student.name}">
-                                `}
-                                <div class="student-title">${student.name}</div>
-                                <div class="student-number">${index + 1}</div>
-                            </div>
-                            
-                            <div class="student-content">
-                                <div class="student-item">
-                                    <span class="info-label">الرقم الجامعي:</span>
-                                    <span class="info-value">${student.studentId || 'غير محدد'}</span>
-                                </div>
-                                <div class="student-item">
-                                    <span class="info-label">المستوى:</span>
-                                    <span class="info-value">${student.level || 'غير محدد'}</span>
-                                </div>
-                                <div class="student-item">
-                                    <span class="info-label">القسم:</span>
-                                    <span class="info-value">${student.department || 'القانون'}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="student-history">
-                                <div>تاريخ التسجيل: ${student.joinDate || 'غير محدد'}</div>
-                                <span class="history-badge ${student.status === 'نشط' ? 'member-badge' : 'admin-badge'}">
-                                    ${student.status || 'نشط'}
-                                </span>
-                            </div>
-                            
-                            <div class="student-actions">
-                                <button class="btn-sm btn-primary" onclick="showEditStudentModal(${student.id})">
-                                    <i class="fas fa-edit"></i> تعديل
-                                </button>
-                                <button class="btn-sm btn-success" onclick="showStudentDetails(${student.id})">
-                                    <i class="fas fa-eye"></i> تفاصيل
-                                </button>
-                                <button class="btn-sm btn-danger" onclick="deleteStudent(${student.id})">
-                                    <i class="fas fa-trash"></i> حذف
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function searchProfessors() {
-            const searchTerm = document.getElementById('professorSearch').value.toLowerCase();
-            const professorsGrid = document.getElementById('professorsGrid');
-            
-            if (!searchTerm) {
-                loadProfessors();
-                return;
-            }
-            
-            const filteredProfessors = libraryData.professors.filter(professor => 
-                professor.name.toLowerCase().includes(searchTerm) ||
-                (professor.rank && professor.rank.toLowerCase().includes(searchTerm)) ||
-                (professor.department && professor.department.toLowerCase().includes(searchTerm)) ||
-                (professor.specialization && professor.specialization.toLowerCase().includes(searchTerm)) ||
-                (professor.email && professor.email.toLowerCase().includes(searchTerm)) ||
-                (professor.notes && professor.notes.toLowerCase().includes(searchTerm))
-            );
-            
-            if (filteredProfessors.length === 0) {
-                professorsGrid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-search"></i>
-                        <h3>لا توجد نتائج للبحث</h3>
-                        <p>لم يتم العثور على أساتذة يطابقون بحثك: "${searchTerm}"</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            professorsGrid.innerHTML = `
-                <div class="cards-grid">
-                    ${filteredProfessors.map(professor => `
-                        <div class="card">
-                            <div class="card-header">
-                                <div class="card-title">${professor.name}</div>
-                                <span class="card-badge">${professor.rank || 'أستاذ'}</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="student-item">
-                                    <span class="info-label">التخصص:</span>
-                                    <span class="info-value">${professor.specialization || 'قانون'}</span>
-                                </div>
-                                <div class="student-item">
-                                    <span class="info-label">القسم:</span>
-                                    <span class="info-value">${professor.department || 'القانون'}</span>
-                                </div>
-                                <div class="student-item">
-                                    <span class="info-label">المكتب:</span>
-                                    <span class="info-value">${professor.office || 'غير محدد'}</span>
-                                </div>
-                            </div>
-                            <div class="card-actions">
-                                <button class="btn-sm btn-primary" onclick="showEditProfessorModal(${professor.id})">
-                                    <i class="fas fa-edit"></i> تعديل
-                                </button>
-                                <button class="btn-sm btn-success" onclick="showProfessorDetails(${professor.id})">
-                                    <i class="fas fa-eye"></i> تفاصيل
-                                </button>
-                                <button class="btn-sm btn-danger" onclick="deleteProfessor(${professor.id})">
-                                    <i class="fas fa-trash"></i> حذف
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        }
-
-        function performSearch() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            if (!searchTerm) {
-                return;
-            }
-            
-            const results = {
-                books: libraryData.books.filter(book => 
-                    book.title.toLowerCase().includes(searchTerm) ||
-                    (book.author && book.author.toLowerCase().includes(searchTerm))
-                ).slice(0, 3),
-                students: libraryData.students.filter(student => 
-                    student.name.toLowerCase().includes(searchTerm) ||
-                    (student.studentId && student.studentId.toLowerCase().includes(searchTerm))
-                ).slice(0, 3),
-                professors: libraryData.professors.filter(professor => 
-                    professor.name.toLowerCase().includes(searchTerm) ||
-                    (professor.rank && professor.rank.toLowerCase().includes(searchTerm))
-                ).slice(0, 3)
-            };
-            
-            const totalResults = results.books.length + results.students.length + results.professors.length;
-            
-            if (totalResults === 0) {
-                showNotification('لم يتم العثور على نتائج تطابق بحثك', 'info');
-                return;
-            }
-            
-            let resultHTML = '<div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius); margin-top: 20px; box-shadow: var(--shadow);">';
-            resultHTML += `<h3 style="margin-bottom: 15px; color: var(--primary);">نتائج البحث: "${searchTerm}"</h3>`;
-            
-            if (results.books.length > 0) {
-                resultHTML += `<h4 style="color: var(--secondary); margin-bottom: 10px;"><i class="fas fa-book"></i> الكتب (${results.books.length})</h4>`;
-                results.books.forEach(book => {
-                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
-                        <strong>${book.title}</strong> - ${book.author || 'غير معروف'}
-                        <button class="btn-sm btn-primary" onclick="showEditBookModal(${book.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
-                            <i class="fas fa-eye"></i> عرض
-                        </button>
-                    </div>`;
-                });
-            }
-            
-            if (results.students.length > 0) {
-                resultHTML += `<h4 style="color: var(--secondary); margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-user-graduate"></i> الطلاب (${results.students.length})</h4>`;
-                results.students.forEach(student => {
-                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
-                        <strong>${student.name}</strong> - ${student.studentId || 'بدون رقم جامعي'}
-                        <button class="btn-sm btn-primary" onclick="showEditStudentModal(${student.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
-                            <i class="fas fa-eye"></i> عرض
-                        </button>
-                    </div>`;
-                });
-            }
-            
-            if (results.professors.length > 0) {
-                resultHTML += `<h4 style="color: var(--secondary); margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-chalkboard-teacher"></i> الأساتذة (${results.professors.length})</h4>`;
-                results.professors.forEach(professor => {
-                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
-                        <strong>${professor.name}</strong> - ${professor.rank || 'أستاذ'}
-                        <button class="btn-sm btn-primary" onclick="showEditProfessorModal(${professor.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
-                            <i class="fas fa-eye"></i> عرض
-                        </button>
-                    </div>`;
-                });
-            }
-            
-            resultHTML += '</div>';
-            
-            const dashboard = document.getElementById('dashboard');
-            const existingResults = dashboard.querySelector('.search-results');
-            if (existingResults) {
-                existingResults.remove();
-            }
-            
-            const resultsDiv = document.createElement('div');
-            resultsDiv.className = 'search-results';
-            resultsDiv.innerHTML = resultHTML;
-            dashboard.querySelector('.quick-actions').before(resultsDiv);
-        }
-
-        // ============================================
-        // وظائف مساعدة للطلاب والأساتذة
+        // وظائف مساعدة للطلاب والأساتذة - محسنة
         // ============================================
         function showStudentDetails(studentId) {
             const student = libraryData.students.find(s => s.id === studentId);
@@ -5424,31 +5113,33 @@
                         <p style="color: var(--text-light);">${student.studentId || 'بدون رقم جامعي'}</p>
                     </div>
                     
-                    <div style="background: var(--hover-bg); padding: 15px; border-radius: var(--radius); margin-bottom: 20px;">
-                        <h4 style="color: var(--secondary); margin-bottom: 10px;">المعلومات الأساسية</h4>
-                        <div class="student-item">
-                            <span class="info-label">المستوى:</span>
-                            <span class="info-value">${student.level || 'غير محدد'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">القسم:</span>
-                            <span class="info-value">${student.department || 'القانون'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">البريد الإلكتروني:</span>
-                            <span class="info-value">${student.email || 'غير محدد'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">رقم الهاتف:</span>
-                            <span class="info-value">${student.phone || 'غير محدد'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">تاريخ التسجيل:</span>
-                            <span class="info-value">${student.joinDate || 'غير محدد'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">الحالة:</span>
-                            <span class="info-value">${student.status || 'نشط'}</span>
+                    <div class="details-container">
+                        <h4 style="color: var(--secondary); margin-bottom: 15px;">المعلومات الأساسية</h4>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">المستوى:</span>
+                                <span class="detail-value">${student.level || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">القسم:</span>
+                                <span class="detail-value">${student.department || 'القانون'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">البريد الإلكتروني:</span>
+                                <span class="detail-value">${student.email || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">رقم الهاتف:</span>
+                                <span class="detail-value">${student.phone || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">تاريخ التسجيل:</span>
+                                <span class="detail-value">${student.joinDate || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">الحالة:</span>
+                                <span class="detail-value">${student.status || 'نشط'}</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -5492,31 +5183,37 @@
                         <p style="color: var(--text-light);">${professor.rank || 'أستاذ'}</p>
                     </div>
                     
-                    <div style="background: var(--hover-bg); padding: 15px; border-radius: var(--radius); margin-bottom: 20px;">
-                        <h4 style="color: var(--secondary); margin-bottom: 10px;">المعلومات الأساسية</h4>
-                        <div class="student-item">
-                            <span class="info-label">التخصص:</span>
-                            <span class="info-value">${professor.specialization || 'قانون'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">القسم:</span>
-                            <span class="info-value">${professor.department || 'القانون'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">البريد الإلكتروني:</span>
-                            <span class="info-value">${professor.email || 'غير محدد'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">رقم الهاتف:</span>
-                            <span class="info-value">${professor.phone || 'غير محدد'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">رقم المكتب:</span>
-                            <span class="info-value">${professor.office || 'غير محدد'}</span>
-                        </div>
-                        <div class="student-item">
-                            <span class="info-label">تاريخ التعيين:</span>
-                            <span class="info-value">${professor.joinDate || 'غير محدد'}</span>
+                    <div class="details-container">
+                        <h4 style="color: var(--secondary); margin-bottom: 15px;">المعلومات الأساسية</h4>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label">التخصص:</span>
+                                <span class="detail-value">${professor.specialization || 'قانون'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">القسم:</span>
+                                <span class="detail-value">${professor.department || 'القانون'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">البريد الإلكتروني:</span>
+                                <span class="detail-value">${professor.email || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">رقم الهاتف:</span>
+                                <span class="detail-value">${professor.phone || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">رقم المكتب:</span>
+                                <span class="detail-value">${professor.office || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">تاريخ التعيين:</span>
+                                <span class="detail-value">${professor.joinDate || 'غير محدد'}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">الرتبة العلمية:</span>
+                                <span class="detail-value">${professor.rank || 'أستاذ'}</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -5728,7 +5425,7 @@
                 metadata: {
                     exportDate: new Date().toISOString(),
                     exportedBy: currentUser.name,
-                    version: '2.4.0'
+                    version: '2.5.0'
                 }
             };
             
@@ -5955,8 +5652,43 @@
         }
 
         // ============================================
-        // وظائف إضافية
+        // وظائف إضافية محسنة
         // ============================================
+        function borrowBook(bookId) {
+            const book = libraryData.books.find(b => b.id === bookId);
+            if (!book) {
+                showNotification('الكتاب غير موجود', 'error');
+                return;
+            }
+            
+            if (book.status !== 'متاح') {
+                showNotification('الكتاب غير متاح للإعارة', 'error');
+                return;
+            }
+            
+            showBorrowModal();
+            
+            setTimeout(() => {
+                const select = document.getElementById('borrowBookId');
+                if (select) {
+                    select.value = bookId;
+                }
+            }, 100);
+        }
+
+        function showStudentAvatar(avatarUrl, studentName) {
+            openModal(`صورة الطالب: ${studentName}`, `
+                <div style="text-align: center; padding: 20px;">
+                    <img src="${avatarUrl}" style="max-width: 100%; max-height: 500px; border-radius: 10px; border: 3px solid var(--secondary);">
+                    <div style="margin-top: 15px;">
+                        <button onclick="closeModal()" class="btn btn-primary">
+                            <i class="fas fa-times"></i> إغلاق
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+
         function newBorrow() {
             showBorrowModal();
         }
@@ -6142,41 +5874,7 @@
                         @media print {
                             body { margin: 20px; }
                         }
-                    
-        /* تحسينات إضافية للتجاوب مع جميع الشاشات */
-        @media (max-width: 600px) {
-            .header { padding: 10px; }
-            .header-title h1 { font-size: 1.1rem; }
-            .user-info { justify-content: center; width: 100%; }
-            .tab { padding: 12px 10px; font-size: 13px; }
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .stat-card { padding: 15px 10px; }
-            .stat-number { font-size: 1.5rem; }
-            .quick-actions { grid-template-columns: 1fr; }
-            .modal-content { width: 98% !important; padding: 15px !important; }
-            .form-control, .btn { font-size: 14px; padding: 12px; }
-        }
-        
-        /* تحسين شكل القوائم المنسدلة في نافذة الإعارة */
-        #borrowBookId, #borrowStudentId {
-            min-height: 150px;
-            cursor: pointer;
-        }
-        
-        #borrowBookId option, #borrowStudentId option {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            white-space: normal;
-            word-wrap: break-word;
-        }
-
-    
-        .modal-content, .card, .student-card { animation: slideUp 0.4s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .search-wrapper { position: relative; margin-bottom: 10px; }
-        .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; display: none; padding: 5px; z-index: 5; }
-        .search-wrapper input:not(:placeholder-shown) + .clear-search { display: block; }
-</style>
+                    </style>
                 </head>
                 <body>
                     <div class="header">
@@ -6210,6 +5908,328 @@
         }
 
         // ============================================
+        // وظائف البحث المحسنة
+        // ============================================
+        function searchBooks() {
+            const searchTerm = document.getElementById('bookSearch').value.toLowerCase();
+            const booksGrid = document.getElementById('booksGrid');
+            
+            if (!searchTerm) {
+                loadBooks();
+                return;
+            }
+            
+            const filteredBooks = libraryData.books.filter(book => 
+                book.title.toLowerCase().includes(searchTerm) ||
+                (book.author && book.author.toLowerCase().includes(searchTerm)) ||
+                (book.category && book.category.toLowerCase().includes(searchTerm)) ||
+                (book.shelf && book.shelf.toLowerCase().includes(searchTerm)) ||
+                (book.notes && book.notes.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filteredBooks.length === 0) {
+                booksGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج للبحث</h3>
+                        <p>لم يتم العثور على كتب تطابق بحثك: "${searchTerm}"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            booksGrid.innerHTML = `
+                <div class="cards-grid">
+                    ${filteredBooks.map(book => `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">${book.title}</div>
+                                <span class="card-badge" style="background: ${book.status === 'متاح' ? 'var(--success)' : 'var(--accent)'}">
+                                    ${book.status}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <div class="student-item">
+                                    <span class="info-label">المؤلف:</span>
+                                    <span class="info-value">${book.author || 'غير معروف'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">التصنيف:</span>
+                                    <span class="info-value">${book.category || 'عام'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">رقم الرف:</span>
+                                    <span class="info-value">${book.shelf || 'غير محدد'}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                ${currentUser.role !== 'student' ? `
+                                    <button class="btn-sm btn-primary" onclick="showEditBookModal(${book.id})">
+                                        <i class="fas fa-edit"></i> تعديل
+                                    </button>
+                                ` : ''}
+                                ${book.status === 'متاح' ? `
+                                    <button class="btn-sm btn-success" onclick="borrowBook(${book.id})">
+                                        <i class="fas fa-hand-holding"></i> إعارة
+                                    </button>
+                                ` : ''}
+                                ${currentUser.role === 'admin' ? `
+                                    <button class="btn-sm btn-danger" onclick="deleteBook(${book.id})">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function searchStudents() {
+            const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
+            const studentsGrid = document.getElementById('studentsGrid');
+            
+            if (!searchTerm) {
+                loadStudents();
+                return;
+            }
+            
+            const filteredStudents = libraryData.students.filter(student => 
+                student.name.toLowerCase().includes(searchTerm) ||
+                (student.studentId && student.studentId.toLowerCase().includes(searchTerm)) ||
+                (student.email && student.email.toLowerCase().includes(searchTerm)) ||
+                (student.phone && student.phone.includes(searchTerm)) ||
+                (student.department && student.department.toLowerCase().includes(searchTerm)) ||
+                (student.notes && student.notes.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filteredStudents.length === 0) {
+                studentsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج للبحث</h3>
+                        <p>لم يتم العثور على طلاب يطابقون بحثك: "${searchTerm}"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            studentsGrid.innerHTML = `
+                <div class="student-cards-grid">
+                    ${filteredStudents.map((student, index) => `
+                        <div class="student-card">
+                            <div class="student-header">
+                                ${student.avatar ? `
+                                    <img src="${student.avatar}" class="student-avatar" alt="${student.name}">
+                                ` : `
+                                    <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=${libraryData.settings.primaryColor.slice(1)}&color=fff&size=70" class="student-avatar" alt="${student.name}">
+                                `}
+                                <div class="student-title">${student.name}</div>
+                                <div class="student-number">${index + 1}</div>
+                            </div>
+                            
+                            <div class="student-content">
+                                <div class="student-item">
+                                    <span class="info-label">الرقم الجامعي:</span>
+                                    <span class="info-value">${student.studentId || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">المستوى:</span>
+                                    <span class="info-value">${student.level || 'غير محدد'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">القسم:</span>
+                                    <span class="info-value">${student.department || 'القانون'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="student-history">
+                                <div>تاريخ التسجيل: ${student.joinDate || 'غير محدد'}</div>
+                                <span class="history-badge ${student.status === 'نشط' ? 'member-badge' : 'admin-badge'}">
+                                    ${student.status || 'نشط'}
+                                </span>
+                            </div>
+                            
+                            <div class="student-actions">
+                                ${currentUser.role !== 'student' ? `
+                                    <button class="btn-sm btn-primary" onclick="showEditStudentModal(${student.id})">
+                                        <i class="fas fa-edit"></i> تعديل
+                                    </button>
+                                ` : ''}
+                                <button class="btn-sm btn-success" onclick="showStudentDetails(${student.id})">
+                                    <i class="fas fa-eye"></i> تفاصيل
+                                </button>
+                                ${currentUser.role === 'admin' ? `
+                                    <button class="btn-sm btn-danger" onclick="deleteStudent(${student.id})">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function searchProfessors() {
+            const searchTerm = document.getElementById('professorSearch').value.toLowerCase();
+            const professorsGrid = document.getElementById('professorsGrid');
+            
+            if (!searchTerm) {
+                loadProfessors();
+                return;
+            }
+            
+            const filteredProfessors = libraryData.professors.filter(professor => 
+                professor.name.toLowerCase().includes(searchTerm) ||
+                (professor.rank && professor.rank.toLowerCase().includes(searchTerm)) ||
+                (professor.department && professor.department.toLowerCase().includes(searchTerm)) ||
+                (professor.specialization && professor.specialization.toLowerCase().includes(searchTerm)) ||
+                (professor.email && professor.email.toLowerCase().includes(searchTerm)) ||
+                (professor.notes && professor.notes.toLowerCase().includes(searchTerm))
+            );
+            
+            if (filteredProfessors.length === 0) {
+                professorsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج للبحث</h3>
+                        <p>لم يتم العثور على أساتذة يطابقون بحثك: "${searchTerm}"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            professorsGrid.innerHTML = `
+                <div class="cards-grid">
+                    ${filteredProfessors.map(professor => `
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">${professor.name}</div>
+                                <span class="card-badge">${professor.rank || 'أستاذ'}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="student-item">
+                                    <span class="info-label">التخصص:</span>
+                                    <span class="info-value">${professor.specialization || 'قانون'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">القسم:</span>
+                                    <span class="info-value">${professor.department || 'القانون'}</span>
+                                </div>
+                                <div class="student-item">
+                                    <span class="info-label">المكتب:</span>
+                                    <span class="info-value">${professor.office || 'غير محدد'}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                ${currentUser.role !== 'student' ? `
+                                    <button class="btn-sm btn-primary" onclick="showEditProfessorModal(${professor.id})">
+                                        <i class="fas fa-edit"></i> تعديل
+                                    </button>
+                                ` : ''}
+                                <button class="btn-sm btn-success" onclick="showProfessorDetails(${professor.id})">
+                                    <i class="fas fa-eye"></i> تفاصيل
+                                </button>
+                                ${currentUser.role === 'admin' ? `
+                                    <button class="btn-sm btn-danger" onclick="deleteProfessor(${professor.id})">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (!searchTerm) {
+                const existingResults = document.querySelector('.search-results');
+                if (existingResults) {
+                    existingResults.remove();
+                }
+                return;
+            }
+            
+            const results = {
+                books: libraryData.books.filter(book => 
+                    book.title.toLowerCase().includes(searchTerm) ||
+                    (book.author && book.author.toLowerCase().includes(searchTerm))
+                ).slice(0, 3),
+                students: libraryData.students.filter(student => 
+                    student.name.toLowerCase().includes(searchTerm) ||
+                    (student.studentId && student.studentId.toLowerCase().includes(searchTerm))
+                ).slice(0, 3),
+                professors: libraryData.professors.filter(professor => 
+                    professor.name.toLowerCase().includes(searchTerm) ||
+                    (professor.rank && professor.rank.toLowerCase().includes(searchTerm))
+                ).slice(0, 3)
+            };
+            
+            const totalResults = results.books.length + results.students.length + results.professors.length;
+            
+            if (totalResults === 0) {
+                showNotification('لم يتم العثور على نتائج تطابق بحثك', 'info');
+                return;
+            }
+            
+            let resultHTML = '<div style="background: var(--card-bg); padding: 20px; border-radius: var(--radius); margin-top: 20px; box-shadow: var(--shadow);">';
+            resultHTML += `<h3 style="margin-bottom: 15px; color: var(--primary);">نتائج البحث: "${searchTerm}"</h3>`;
+            
+            if (results.books.length > 0) {
+                resultHTML += `<h4 style="color: var(--secondary); margin-bottom: 10px;"><i class="fas fa-book"></i> الكتب (${results.books.length})</h4>`;
+                results.books.forEach(book => {
+                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                        <strong>${book.title}</strong> - ${book.author || 'غير معروف'}
+                        <button class="btn-sm btn-primary" onclick="showEditBookModal(${book.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
+                            <i class="fas fa-eye"></i> عرض
+                        </button>
+                    </div>`;
+                });
+            }
+            
+            if (results.students.length > 0) {
+                resultHTML += `<h4 style="color: var(--secondary); margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-user-graduate"></i> الطلاب (${results.students.length})</h4>`;
+                results.students.forEach(student => {
+                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                        <strong>${student.name}</strong> - ${student.studentId || 'بدون رقم جامعي'}
+                        <button class="btn-sm btn-primary" onclick="showEditStudentModal(${student.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
+                            <i class="fas fa-eye"></i> عرض
+                        </button>
+                    </div>`;
+                });
+            }
+            
+            if (results.professors.length > 0) {
+                resultHTML += `<h4 style="color: var(--secondary); margin-top: 15px; margin-bottom: 10px;"><i class="fas fa-chalkboard-teacher"></i> الأساتذة (${results.professors.length})</h4>`;
+                results.professors.forEach(professor => {
+                    resultHTML += `<div style="padding: 10px; border-bottom: 1px solid var(--border);">
+                        <strong>${professor.name}</strong> - ${professor.rank || 'أستاذ'}
+                        <button class="btn-sm btn-primary" onclick="showEditProfessorModal(${professor.id})" style="float: left; padding: 3px 8px; font-size: 12px;">
+                            <i class="fas fa-eye"></i> عرض
+                        </button>
+                    </div>`;
+                });
+            }
+            
+            resultHTML += '</div>';
+            
+            const dashboard = document.getElementById('dashboard');
+            const existingResults = dashboard.querySelector('.search-results');
+            if (existingResults) {
+                existingResults.remove();
+            }
+            
+            const resultsDiv = document.createElement('div');
+            resultsDiv.className = 'search-results';
+            resultsDiv.innerHTML = resultHTML;
+            dashboard.querySelector('.quick-actions').before(resultsDiv);
+        }
+
+        // ============================================
         // المساعدة
         // ============================================
         function showHelp() {
@@ -6220,7 +6240,7 @@
         // بداية التشغيل
         // ============================================
         console.log('✅ نظام المكتبة القانونية - مركز أورنمو');
-        console.log('📚 الإصدار: 2.4.0 | جميع الحقوق محفوظة');
+        console.log('📚 الإصدار: 2.5.0 | جميع الحقوق محفوظة');
         console.log('🎨 نظام متكامل مع تقارير مفصلة وتصميم متجاوب');
         console.log('📊 نظام استرداد JSON منفصل بدون الحاجة للدخول');
         console.log('📁 إضافة خاصية استيراد JSON للطلاب والأساتذة');
@@ -6230,4 +6250,4 @@
         console.log('👤 النظام جاهز للاستخدام');
     </script>
 </body>
-</html>    
+</html>
