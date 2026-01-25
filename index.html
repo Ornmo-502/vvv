@@ -1530,7 +1530,13 @@
             word-wrap: break-word;
         }
 
-    </style>
+    
+        .modal-content, .card, .student-card { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .search-wrapper { position: relative; margin-bottom: 10px; }
+        .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; display: none; padding: 5px; z-index: 5; }
+        .search-wrapper input:not(:placeholder-shown) + .clear-search { display: block; }
+</style>
 </head>
 <body>
     <!-- شاشة التحميل -->
@@ -3204,7 +3210,13 @@
             word-wrap: break-word;
         }
 
-    </style>
+    
+        .modal-content, .card, .student-card { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .search-wrapper { position: relative; margin-bottom: 10px; }
+        .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; display: none; padding: 5px; z-index: 5; }
+        .search-wrapper input:not(:placeholder-shown) + .clear-search { display: block; }
+</style>
                 </head>
                 <body>
                     <div class="header">
@@ -4711,7 +4723,7 @@
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
                             <i class="fas fa-book"></i> اختيار الكتاب
                         </label>
-                        <input type="text" id="searchBook" class="form-control" placeholder="ابحث عن كتاب..." onkeyup="filterBorrowOptions('borrowBookId', this.value)" style="margin-bottom: 5px;">
+                        <input type="text" id="searchBook" class="form-control" placeholder="ابحث عن كتاب..." onkeyup="filterBorrowOptions('borrowBookId', this.value)" style="padding-left: 35px;"><i class="fas fa-times-circle clear-search" onclick="clearSearch('searchBook', 'borrowBookId')"></i>
                         <select id="borrowBookId" class="form-control" required size="5">
                             <option value="">اختر الكتاب</option>
                             ${availableBooks.map(book => `
@@ -4724,7 +4736,7 @@
                         <label style="display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary);">
                             <i class="fas fa-user-graduate"></i> اختيار الطالب
                         </label>
-                        <input type="text" id="searchStudent" class="form-control" placeholder="ابحث عن طالب..." onkeyup="filterBorrowOptions('borrowStudentId', this.value)" style="margin-bottom: 5px;">
+                        <input type="text" id="searchStudent" class="form-control" placeholder="ابحث عن طالب..." onkeyup="filterBorrowOptions('borrowStudentId', this.value)" style="padding-left: 35px;"><i class="fas fa-times-circle clear-search" onclick="clearSearch('searchStudent', 'borrowStudentId')"></i>
                         <select id="borrowStudentId" class="form-control" required size="5">
                             <option value="">اختر الطالب</option>
                             ${availableStudents.map(student => `
@@ -4780,6 +4792,14 @@
         }
 
         
+        
+        function clearSearch(inputId, selectId) {
+            const input = document.getElementById(inputId);
+            input.value = '';
+            filterBorrowOptions(selectId, '');
+            input.focus();
+        }
+
         function filterBorrowOptions(selectId, query) {
             const select = document.getElementById(selectId);
             const options = select.options;
@@ -6150,7 +6170,13 @@
             word-wrap: break-word;
         }
 
-    </style>
+    
+        .modal-content, .card, .student-card { animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .search-wrapper { position: relative; margin-bottom: 10px; }
+        .clear-search { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; display: none; padding: 5px; z-index: 5; }
+        .search-wrapper input:not(:placeholder-shown) + .clear-search { display: block; }
+</style>
                 </head>
                 <body>
                     <div class="header">
@@ -6204,4 +6230,4 @@
         console.log('👤 النظام جاهز للاستخدام');
     </script>
 </body>
-</html> 
+</html>    
